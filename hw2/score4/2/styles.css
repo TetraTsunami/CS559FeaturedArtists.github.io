@@ -1,0 +1,45 @@
+canvas {
+  border: 1px black solid;
+}
+h1, h2{
+  text-align: center;
+}
+main{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 80%;
+  margin: auto;
+}
+
+div {
+  min-width: 500px;
+  padding: 20px;
+}
+
+#showing-panel > canvas {
+  position: absolute;
+}
+
+#fourier-drawing {
+  z-index: 1;
+}
+
+#fourier-showing {
+  z-index: 2;
+}
+
+#slider-group {
+  position: relative;
+  width: 500px;
+  top: 535px;
+}
+#slider {
+  width: 430px;
+  vertical-align: middle;
+}
+#check-box-group {
+  position: relative;
+    width: 500px;
+    top: 525px;
+}

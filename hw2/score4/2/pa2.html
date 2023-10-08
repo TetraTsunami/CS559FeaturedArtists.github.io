@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script type="text/javascript" src="initial_data.js"></script>
+    <script type="text/javascript" src="script.js"></script>
+    <title>PA2: Fourier Transform Visulization</title>
+  </head>
+  <body>
+    <h1>Fourier Transform Visulization</h1>
+    <main>
+      <div id="drawing-panel">
+        <canvas id="drawing-pad" width="500" height="500"></canvas>
+        <h2>Draw here</h2>
+        <button id="redo-button">Undo</button>
+        <button id="load-example">Load Example</button>
+      </div>
+      <div id="showing-panel">
+        <canvas id="fourier-drawing" width="500" height="500"></canvas>
+        <canvas id="fourier-showing" width="500" height="500"></canvas>
+        <div id="slider-group"><label for="slider">Order:</label><input id= "slider" type="range" min = "1" max = "300"></div>
+        <div id="check-box-group">
+          <label><input type="checkbox" id ="check-circle" name="check-circle" checked></button>Moving Circle</label>
+          <label><input type="checkbox" id="check-trailing" name="check-trailing"></button>Trailing</label>
+        </div>
+      </div>
+    </main>
+    <p>Inspired by 3B1B's video: <a href="https://www.youtube.com/watch?v=r6sGWTCMz2k">But what is a Fourier series? From heat flow to drawing with circles</a></p>
+    <p>Also, <a href="https://www.jezzamon.com/fourier/">checkout this blog!</a></p>
+    <p>The algorithms is the simplest <a href="https://en.wikipedia.org/wiki/Discrete_Fourier_transform">DFT</a> and <a href="https://en.wikipedia.org/wiki/Trigonometric_interpolation">Trigonometric interpolation</a>, implemented by myself. I wanted to implement FFT, but it turns out to be unnecessary for such few samples.</p>
+  </body>
+</html>
