@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Project Three: Ben Kaul</title>
+    <h1>The Universe</h1>
+    <style>
+        /* CSS to set the background color of the canvas to black */
+      canvas {
+          background-color: #20043d;
+          border-radius: 100px;
+      }
+
+      #canvas-container {
+        display: flex;
+        align-items: top; /* Vertically center canvas and text */
+      }
+
+      #text-container {
+        /* Styles for your text container */
+        margin-left: 55px; /* Add spacing between canvas and text */
+        font-size: xx-large; 
+      }
+
+
+      #adjusters {
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          background-color:lightcyan;
+          width: 350px;
+          border-radius: 30px;
+          padding: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-container">
+      <canvas id="theCanvas" width="1000" height="1000"></canvas>
+      <div id="text-container">
+      </div>
+    </div>
+    <br/>
+    <div id="adjusters">
+      <label for="planetSelect">Choose a Planet:</label>
+      <select id="planetSelect">
+        <option value="mercury">Mercury</option>
+        <option value="venus">Venus</option>
+        <option value="earth" selected>Earth</option>
+        <option value="mars">Mars</option>
+        <option value="jupiter">Jupiter</option>
+        <option value="saturn">Saturn</option>
+        <option value="uranus">Uranus</option>
+        <option value="neptune">Neptune</option>
+      </select>
+      <br/>
+      <label for="slider1">Selected Planet's Yearly Rotation:</label>
+      <input id="slider1" type="range" min="0" max="200" />
+      <br/>
+      <label for="slider2">Moon Rotations:</label>
+      <input id="slider2" type="range" min="-100" max="100" />
+      <br/>
+      <label for="slider3">Zoom: </label>
+      <input id="slider3" type="range" min="0.05" max="5" step="0.01" name="zoom"/>
+    </div>
+    <script type="text/javascript" src="gl-matrix-min.js"></script>
+    <script src="project3.js" id="module"></script>
+  </body>
+</html>

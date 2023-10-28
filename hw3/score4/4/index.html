@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Assignment 3 Rochelle Li</title>
+  </head>
+  <body>
+    <h2>Construction in Windy Madison</h2>
+    <canvas id="myCanvas" width="500" height="500"></canvas>
+    <br/>
+    <p>Crane controls - Control the it! If it swings too much, just wait... it'll slow down.</p>
+    <p>The rope is made of several linked coordinate axes.</p>
+    <input id="slider1" type="range" min="-500" max="500" />
+    <br/>
+    <input id="slider2" type="range" min="-40" max="40" />
+    <br/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"
+        integrity="sha512-zhHQR0/H5SEBL3Wn6yYSaTTZej12z0hVZKOv3TwCUXT1z5qeqGcXJLLrbERYRScEDDpYIJhPC1fk31gqR783iQ=="
+        crossorigin="anonymous" defer>
+    </script>
+    <script src="index.js" id="module"></script>
+  </body>
+</html>

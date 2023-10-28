@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Assignment 3</title>
+  </head>
+  <body>
+    <h2 style="font-family: Didot;" align="center">Assignment 3</h2>
+    <p style="font-family: Didot;" align="center">CS 559 Computer Graphics | Fall 2023 | Rutwik Jain | rnjain@wisc.edu</p>
+    <p style="font-family: Didot;" align="center">Carnival scene extended edition: Adding a roller coaster that traces a curved trajectory, in addition to replacing all Canvas in-built transforms to glMatrix implementations.</p>
+    <center>
+      <canvas id="myCanvas" 
+	    width="1000" height="600">
+    </canvas>
+    <br/>
+    Move slider to see the roller coaster car go through the carnival:
+    <input id="slider1" type="range" min="0" max="100" />
+    </center>
+    <div style="display:none;">
+      <img id="source" src="gabriel-perez-_ahYGI9nExQ-unsplash.jpg" width="2000" height="600" />
+    </div>
+    <script type="text/javascript" src="gl-matrix-min.js"></script>
+    <script src="assignment3.js" id="module"></script>
+  </body>
+</html>
