@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Assignment 4</title>
+  </head>
+  <body>
+    <h2 style="font-family: Didot;" align="center">Assignment 4</h2>
+    <p style="font-family: Didot;" align="center">CS 559 Computer Graphics | Fall 2023</p>
+    <p style="font-family: Didot;" align="center">School of Fish: Boid flocking, but the boids follow a leader fish which traces a parametric piecewise closed Hermite curve. 
+    Referred to flocking simulation theory from Craig Reynolds' page: <a href="https://www.red3d.com/cwr/boids/">//www.red3d.com/cwr/boids/</a>. 
+    Could not find any glMatrix implementations of flocking online, so wrote my own. However, some of the code is inspired by <a href="https://thecodingtrain.com/challenges/124-flocking-simulation">this page</a>.
+  
+    </p>
+    <center>
+      <canvas id="myCanvas" 
+	    width="1000" height="600" style="float:left">
+    </canvas>
+    <br>
+    Alignment <input id="slider2" type="range" min="0" max="5" />
+    <br/>
+    Cohesion <input id="slider3" type="range" min="0" max="5" />
+    <br/>
+    Separation <input id="slider4" type="range" min="0" max="5" />
+    <br/>
+    <button id="mybutton" type="button">Show Trajectory</button> 
+    </center>
+    <!-- <div style="display:none;">
+      <img id="source" src="ocean-bed.jpg" width="1920" height="1080" />
+    </div> -->
+    <script type="text/javascript" src="gl-matrix-min.js"></script>
+    <script src="assignment4.js" id="module"></script>
+  </body>
+</html>

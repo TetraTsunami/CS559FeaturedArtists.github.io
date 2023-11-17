@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>559 P4</title>
+    </head>
+    <body>
+        <canvas id="mainc" height="600" width="1200"></canvas>
+        <img src="map.png" style="display:none"/>
+    </body>
+
+    <script src="gl-matrix-min.js" defer></script>
+    <script src="script.js" defer></script>
+
+    <div>
+        <label>From:</label>
+        <select id="from">
+            <option value=0>Dejope</option>
+            <option value=1>Camp Randal</option>
+            <option value=2>Union South</option>
+            <option value=3>Chemistry Building</option>
+            <option value=4>Bascom Hall</option>
+            <option value=5>Kohl Center</option>
+            <option value=6>UW Hospital</option>
+            <option value=7>Memorial Union</option>
+        </select>
+        <label>To:</label>
+        <select id="to">
+            <option value=0>Dejope</option>
+            <option value=1>Camp Randal</option>
+            <option value=2>Union South</option>
+            <option value=3>Chemistry Building</option>
+            <option value=4>Bascom Hall</option>
+            <option value=5>Kohl Center</option>
+            <option value=6>UW Hospital</option>
+            <option value=7>Memorial Union</option>
+        </select>
+        <label>Offroad Tolerance:</label>
+        <input id="ot" type="range" min="20" max="150"></input>
+        <label>Normalize Speed:</label>
+        <input id="ns" type="checkbox"></input>
+        <label>Force Upright Orientation:</label>
+        <input id="fo" type="checkbox"></input>
+        <button id="go" onclick="go()">Go!</button>
+        <p id="status" style="color:red"></p>
+    </div>
+</html>
