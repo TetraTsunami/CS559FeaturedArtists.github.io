@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cymatics</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: "Georgia", cursive;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    /* Dark mode styles */
+    .dark-mode {
+      --bg-color: #202123;
+      --text-color: #F7F7F8;
+      --button-bg-color: #333;
+      --button-text-color: #F7F7F8;
+      --drawing-color: #aaa; /* Customize the color for the drawing */
+    }
+
+    /* Controls layout and positioning */
+    .controls {
+      position: absolute;
+      padding: 10px;
+    }
+
+    .sliders{
+      position: fixed;
+      left: 50px;
+      top: 40%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5em;
+    }
+
+    #play-button {
+      position: fixed;
+      left: 50%;
+      bottom: 10%;
+      transform: translateX(-50%);
+    }
+
+    /* Slider styles */
+    .controls input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      background: var(--button-bg-color);
+      border-radius: 5px;
+      outline: none;
+    }
+
+    .controls input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: var(--button-text-color);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .controls input[type="range"]::-moz-range-thumb {
+      /* Firefox */
+      width: 20px;
+      height: 20px;
+      background: var(--button-text-color);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    /* Button styles */
+    .controls button {
+      padding: 5px 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: var(--button-bg-color);
+      border: 2px solid var(--button-text-color);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--button-text-color);
+    }
+
+    .controls button .fa {
+      font-size: 20px;
+    }
+
+    .controls button.playing .icon-pause {
+      display: inline;
+    }
+
+    .controls button.playing .icon-play {
+      display: none;
+    }
+
+    .controls button:not(.playing) .icon-play {
+      display: inline;
+    }
+
+    .controls button:not(.playing) .icon-pause {
+      display: none;
+    }
+
+    .title {
+      font-size: 50px;
+      font-family: "Georgia",cursive;
+      position: fixed;
+      top: 5%;
+      left: 50px;
+    }
+    .title p {
+      font-size: 20px;
+      color: var(--text-color);
+      cursor: pointer;
+      z-index: 1003;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <script src="gl-matrix-master/dist/gl-matrix.js"></script>
+</head>
+<body class="dark-mode">
+<label class="title">Variable Pattern Generation based on Sounds Frequencies</label>
+<div class="controls">
+  <div class="sliders">
+    <label for="frequency-slider">Select Frequency:
+      <span id="frequency-value">440 Hz</span>
+    </label>
+    <input
+            type="range"
+            id="frequency-slider"
+            min="20"
+            max="2000"
+            step="5"
+            value="440"
+            oninput="updateFrequency(this.value)"
+    />
+    <label for="backward-slider">Backward Speed:</label>
+    <input
+            type="range"
+            id="backward-slider"
+            min="0"
+            max="100"
+            step="1"
+            value="10"
+            oninput="updateBackwardSpeed(this.value)"
+    />
+    <label for="rotation-slider">Camera Rotation:</label>
+    <input
+            type="range"
+            id="rotation-slider"
+            min="0"
+            max="360"
+            value="0"
+            oninput="updateRotationAngle(this.value)"
+    />
+  </div>
+  <button id="play-button" onclick="toggleAudio()">
+    <i class="icon-play fa fa-play"></i>
+    <i class="icon-pause fa fa-pause"></i>
+  </button>
+</div>
+
+<script src="cymatics.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>The flower and the bee</title>
+  </head>
+  <body>
+    [Left window] View by a remote external observer; [Right window] View from location of the camera</br>
+    <canvas id="observerCanvas" width="400" height="400" style="border:1px solid #888;"></canvas>
+    <canvas id="cameraCanvas" width="400" height="400" style="border:1px solid #888;"></canvas>
+    </br>
+    <input id="slider1" type="range" min="1" max="157" /> θ camera angle against the vertical axis
+    </br>
+    <input id="slider2" type="range" min="0" max="628" /> φ camera angle against the horizontal axis <br> 
+    <script type="text/javascript" src="gl-matrix-min.js"></script>
+    <script src="demo.js" id="module"></script>
+  </body>
+</html>

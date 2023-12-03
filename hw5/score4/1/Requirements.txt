@@ -1,0 +1,21 @@
+Requirement #1. Moveable camera exist. The motion can be triggered by manipulation of a camera slider.
+
+Requirement #2. The 3D bouncing speakers with their multiple parts adds hierarchy to the scene. Furthermore, the
+dynamic nature of the pen positions (penPositions) and their rendering as a 3D curve can be interpreted as a form of
+hierarchy,where each point depends on the previous one for its position.
+
+Requirement #3. The camera "spins around" the whole scene". The speaker objects and the way they are manipulated and
+drawn in 3D space, along with the parametric curve, ensure that the scene is distinctly 3D. The drawCurve() function,
+which visualizes a moving curve in 3D space,adds to the 3D nature of the scene.
+
+Requirement #4. The camera uses a projection transform (perspective). However, p5.js does not allow directly
+applying transformation matrices onto the WEBGL renderer. Therefore, I had to use p5.js's camera() and perspective()
+functions with the appropriate parameters derived from the glMatrix matrices.
+
+Requirement #5. The program uses a parametric curve to update the positions of the pen. This is seen in the
+updatePenPositions() function, where the pen's next position is calculated using a combination of sine and cosine
+functions, which are classic examples of parametric equations. This curve is then rendered in 3D space.
+
+I hope the integration of sounds with curve formation and manipulation of sound frequency to create different curves
+along with added 3D bouncing speakers and the scenes's ability to move 360 with the camera while maintaining hierarchy
+qualifies this project for a full 4 grade.
