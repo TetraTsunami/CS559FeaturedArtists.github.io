@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Program Eight</title>
+  </head>
+  <body>
+    <h3 class="center-text">CS559 Program 08</h3>
+
+    <div class="canvas-container">
+      <div class="button-container">
+        <button id="resetCanvas">Reset Canvas</button>
+        <button id="animateToggle">Toggle Animation</button>
+        <button id="changeRotation">Change Rotation</button>
+        3 types ^
+      </div>
+      <canvas id="myCanvas"> </canvas>
+    </div>
+
+    <br />
+    <div class="slider-row">
+      <div class="slider-container">
+        Circle around the y-axis
+        <input id="slider1" class="slider" />
+      </div>
+      <div class="slider-container">
+        Rotate the object (need > 1 model)
+        <input id="slider2" class="slider" />
+      </div>
+      <div class="slider-container">
+        Increase speed of animation
+        <input id="slider6" class="slider" />
+      </div>
+    </div>
+
+    <div class="slider-row">
+      <div class="slider-container">
+        Try this with multiple models
+        <input id="slider3" class="slider" />
+      </div>
+      <div class="slider-container">
+        Add more models
+        <input id="slider4" class="slider" />
+      </div>
+      <div class="slider-container">
+        Literally does nothing
+        <input id="slider5" class="slider" />
+      </div>
+    </div>
+    <br />
+
+    <script src="program8.js" id="module"></script>
+    <script src="gl-matrix-min.js"></script>
+
+    <script id="vertexShader" type="not-js">
+       attribute vec3 vPosition;
+       attribute vec3 vNormal;
+       attribute vec3 vColor;
+       attribute vec2 vTexCoord;
+       varying vec3 fPosition;
+       varying vec3 fColor;
+       varying vec3 fNormal;
+       varying vec2 fTexCoord;
+       uniform mat4 uMV;
+       uniform mat4 uMVP;
+
+       void main(void) {
+         gl_Position = uMVP * vec4(vPosition, 1.0);
+         fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+         fColor = vColor;
+         fNormal = vNormal;                            // In local coordinates
+         fTexCoord = vTexCoord;
+      }
+    </script>
+
+    <script id="fragmentShader" type="not-js">
+      precision highp float;
+      varying vec3 fPosition;
+      varying vec3 fColor;
+      varying vec3 fNormal;
+      varying vec2 fTexCoord;
+      uniform mat4 uMV;
+      uniform mat3 uMVn;
+      uniform sampler2D texSampler1;
+      uniform sampler2D texSampler2;
+
+      const vec3  lightV    = vec3(0.0,-0.3,1.0);
+      const float lightI    = 1.0;               // only for diffuse component
+      const float ambientC  = 0.5;
+      const float diffuseC  = 0.4;
+      const float specularC = 0.3;
+      const float specularE = 32.0;
+      const vec3  lightCol  = vec3(1.0,1.0,1.0);
+      const vec3  objectCol = vec3(1.0,0.6,0.0); // yellow-ish orange
+      vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+        float Kd, float Ks, float shininess) {
+        vec3 s = normalize(lightDir);
+        vec3 v = normalize(-fPosition);
+        vec3 h = normalize(v+s);
+        float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+        float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+        return vec2(diffuse, spec);
+      }
+
+      void main(void) {
+        vec3 texColor=texture2D(texSampler1,fTexCoord).xyz;
+        vec3 n = normalize(uMVn * fNormal);
+        vec3 ColorS  = blinnPhongDir(lightV,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+        vec3 ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*texColor;
+        gl_FragColor = vec4(ColorAD+ColorS,1.0);
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  body {
+    background-color: lightblue;
+  }
+
+  canvas {
+    border: 3px solid black;
+    background-color: white;
+  }
+
+  .center-text {
+    text-align: center;
+    color: black;
+  }
+
+  .canvas-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-right: 15px;
+  }
+
+  .slider-container {
+    margin: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 45%; /* Adjusted to fit two containers side by side */
+  }
+
+  .slider {
+    appearance: none;
+    width: 65%; /* Slider takes the full width of its container */
+    height: 25px;
+    background: #f4f0f0;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: 0.2s;
+    transition: opacity 0.2s;
+  }
+
+  .slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #04aa6d;
+    cursor: pointer;
+  }
+  .slider-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Space between the slider containers */
+  }
+</style>

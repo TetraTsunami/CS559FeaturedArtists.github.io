@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>James Cui P7 Shiny Diamond</title>
+  </head>
+
+  <style>
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 26px;
+      cursor: pointer;
+      position: absolute;
+      text-align: center;
+      outline: none;
+      color: #fff;
+      background-color: #0ef43c;
+    }
+  </style>
+
+<body>
+    <script id="vertexShader" type="not-js">
+      attribute vec3 vPosition;
+      attribute vec3 vNormal;
+      attribute vec3 vColor;
+      attribute vec2 vTexCoord;
+      varying vec3 fPosition;
+      varying vec3 fColor;
+      varying vec3 fNormal;
+      varying vec2 fTexCoord;
+      uniform mat4 uMV;
+      uniform mat4 uMVP;
+
+      void main(void) {
+        gl_Position = uMVP * vec4(vPosition, 1.0);
+        fPosition = (uMV * vec4(vPosition, 1.0)).xyz; 
+        fColor = vColor;
+        fNormal = vNormal;                            
+        fTexCoord = vTexCoord;
+     }
+    </script>
+
+    <script id="fragmentShader" type="not-js">
+      precision highp float;
+      varying vec3 fPosition;
+      varying vec3 fColor;
+      varying vec3 fNormal;
+      varying vec2 fTexCoord;
+      uniform mat4 uMV;
+      uniform mat3 uMVn;
+      uniform sampler2D texSampler1;
+      uniform sampler2D texSampler2;
+
+      const vec3  lightV_1    = vec3(-0.3,-0.3,1.0);
+      const vec3  lightV_2    = vec3(0.3,0.3,-1.0);
+      const float lightI    = 0.5;             
+      const float ambientC  = 0.5;
+      const float diffuseC  = 0.4;
+      const float specularC = 0.8;
+      const float specularE = 32.0;
+      const vec3  lightCol  = vec3(1.0,1.0,1.0);
+      const vec3  objectCol = vec3(1.0,0.6,0.0); // yellow-ish orange
+      vec2 PhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+        float Kd, float Ks, float shininess) {
+        vec3 s = normalize(lightDir);
+        vec3 v = normalize(-fPosition);
+        vec3 h = normalize(v+s);
+        float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+        float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+        return vec2(diffuse, spec);
+      }
+
+      void main(void) {
+        vec3 texColor=texture2D(texSampler1,fTexCoord).xyz;
+        vec3 n = normalize(uMVn * fNormal);
+        vec3 ColorS_1  = PhongDir(lightV_1,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+        vec3 ColorAD_1 = PhongDir(lightV_1,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*texColor;
+        vec3 ColorS_2  = PhongDir(lightV_2,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+        vec3 ColorAD_2 = PhongDir(lightV_2,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*texColor;
+        vec3 ColorS = ColorS_1 + ColorS_2;
+        vec3 ColorAD = ColorAD_1 + ColorAD_2;
+        gl_FragColor = vec4(ColorAD+ColorS,1.0);
+      }
+    </script>
+
+    <canvas id="mycanvas" width="500" height="500"></canvas>
+    <br>
+    Spining Speed of Diamond
+    <input id="slider1" type="range" min="1" max="300" />
+    <br>
+    Rotate Diamond (To View "Wrap Around")
+    <input id="slider2" type="range" min="1" max="100" />
+    <br>
+    Change Diamond Texture
+    <input id="slider3" type="range" min="1" max="100" />
+    <br>
+    <br>
+    <script type="text/javascript" src="gl-matrix-min.js"></script>
+    <script src="p8.js" id="module"></script>
+  </body>
+</html>

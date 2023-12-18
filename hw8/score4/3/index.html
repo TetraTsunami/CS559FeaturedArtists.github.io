@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Coffee Cafe</title>
+  </head>
+
+  <body>
+    </script>
+    <script id="vertexShader" type="not-js">
+        attribute vec3 vPosition;
+        attribute vec3 vNormal;
+        attribute vec3 vColor;
+        attribute vec2 vTexCoord;
+        varying vec3 fPosition;
+        varying vec3 fColor;
+        varying vec3 fNormal;
+        varying vec2 fTexCoord;
+        uniform mat4 uMV;
+        uniform mat4 uMVP;
+        uniform bool isTexture;
+
+        void main(void) {
+            gl_Position = uMVP * vec4(vPosition, 1.0);
+            fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+            fNormal = vNormal; // In local coordinates
+            if(isTexture) {
+                fColor = vColor;
+                fTexCoord = vTexCoord;
+            }
+        }
+    </script>
+
+    <script id="fragmentShader" type="not-js">
+        precision highp float;
+        varying vec3 fPosition;
+        varying vec3 fColor;
+        varying vec3 fNormal;
+        varying vec2 fTexCoord;
+        uniform mat4 uMV;
+        uniform mat3 uMVn;
+        uniform vec3 objectCol;
+        uniform bool isTexture;
+        uniform int textureNumber;
+
+        uniform sampler2D texSampler1;
+        uniform sampler2D texSampler2;
+        uniform sampler2D texSampler3;
+        uniform sampler2D texSampler4;
+        uniform sampler2D texSampler5;
+        uniform sampler2D texSampler6;
+        uniform sampler2D texSampler7;
+        uniform sampler2D texSampler8;
+
+  
+        const vec3  lightV    = vec3(1.0,-1.3,1.0);
+        const float lightI    = 0.6;               // only for diffuse component
+        const float ambientC  = 0.25;
+        const float diffuseC  = 0.9;
+        const float specularC = 0.0;
+        const float specularE = 0.0;
+        const vec3  lightCol  = vec3(1.1,1.0,1.0);
+
+        const vec3 _Warm = vec3(2.21,1.03,0.67);
+        const vec3 _Cool = vec3(1.27,1.87,2.39);
+        const vec3 _Albedo = vec3(1.0,1.0,1.0);
+        float _Alpha = 0.3;
+        float _Beta = 0.3;
+        vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+          float Kd, float Ks, float shininess) {
+          vec3 s = normalize(lightDir);
+          vec3 v = normalize(-fPosition);
+          vec3 h = normalize(v+s);
+          float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+
+          float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+          return vec2(diffuse, spec);
+        }
+
+        vec3 goochDiffuse(vec3 lightDir, vec3 n, float lightInt, float Ka,
+        float Kd, float Ks, float shininess) {
+            vec3 s = normalize(lightDir);
+            vec3 v = normalize(-fPosition);
+            vec3 h = normalize(v+s);
+            float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+    
+            float gooch = (1.0 + max(0.0, dot(s,n))) / 2.0;
+            vec3 kCool = _Cool + _Alpha * _Albedo;
+            vec3 kWarm = _Warm + _Beta * _Albedo;
+            vec3 goochDiffuse = (gooch * kWarm) + ((1.0 - gooch) * kCool);
+    
+            float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+            return goochDiffuse;
+        }
+  
+        void main(void) {
+          vec3 n = normalize(uMVn * fNormal);
+          vec3 ColorS = blinnPhongDir(lightV,n,0.0,0.0,0.0,specularC, specularE).y*lightCol;
+          vec3 ColorAD;
+          if(isTexture) {
+            vec3 texColor;
+            if(textureNumber == 1) {  
+                texColor=texture2D(texSampler1,fTexCoord).xyz; 
+            }
+            else if(textureNumber == 2) {  
+                texColor=texture2D(texSampler2,fTexCoord).xyz; 
+            } 
+            else if(textureNumber == 3) {
+                texColor=texture2D(texSampler3,fTexCoord).xyz; 
+            }
+            else if(textureNumber == 4) {
+                texColor=texture2D(texSampler4,fTexCoord).xyz; 
+            }
+            else if(textureNumber == 5) {
+                texColor=texture2D(texSampler5,fTexCoord).xyz; 
+            }
+            else if(textureNumber == 6) {
+                texColor=texture2D(texSampler6,fTexCoord).xyz; 
+            }
+            else if(textureNumber == 7) {
+                texColor=texture2D(texSampler7,fTexCoord).xyz; 
+            }
+            else if(textureNumber == 8) {
+                texColor=texture2D(texSampler8,fTexCoord).xyz; 
+            }
+            ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,0.0).x*texColor;
+            if(ColorAD.x < 0.03 && ColorAD.y < 0.03 && ColorAD.z < 0.03) discard;
+          }
+          else {
+            ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,0.0).x*objectCol;
+          }
+          gl_FragColor = vec4(ColorS+ColorAD,1.0);
+        }
+    </script>
+
+    <canvas id="mycanvas" width="500" height="500"></canvas>
+    <br>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"
+    integrity="sha512-zhHQR0/H5SEBL3Wn6yYSaTTZej12z0hVZKOv3TwCUXT1z5qeqGcXJLLrbERYRScEDDpYIJhPC1fk31gqR783iQ=="
+    crossorigin="anonymous" defer>
+</script>
+<script type="text/javascript" src="gl-matrix-min.js"></script>
+<script src="index.js" id="module"></script>
+  </body>
+</html>

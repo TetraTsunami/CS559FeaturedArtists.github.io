@@ -1,0 +1,428 @@
+
+/*
+function draw(POS, NORM, TEX, shaderProgram, gl){
+    
+    // Translate slider values to angles in the [-pi,pi] interval
+    // ORIGINAL CAMERA
+
+    var angle1 = 50.0*0.01*Math.PI;
+    var angle2 = 50.0*0.01*Math.PI;
+
+    // Circle around the y-axis
+    //var eye = [400*Math.sin(angle1),150.0,400.0*Math.cos(angle1)];
+    var eye = [0.0, 50.0, 150.0];
+    var target = [0,0,0];
+    var up = [0,1,0];
+
+    var tModel = mat4.create();
+    mat4.fromScaling(tModel,[5,5,5]);
+    //mat4.rotate(tModel,tModel,angle2,[1,1,1]);
+  
+    var tCamera = mat4.create();
+    mat4.lookAt(tCamera, eye, target, up);      
+
+    var tProjection = mat4.create();
+    //mat4.perspective(tProjection,Math.PI/4,1,10,100000000);
+    mat4.perspective(tProjection,Math.PI/4,1,-1,1);
+  
+    var tMV = mat4.create();
+    var tMVn = mat3.create();
+    var tMVP = mat4.create();
+    mat4.multiply(tMV,tCamera,tModel); // "modelView" matrix
+    mat3.normalFromMat4(tMVn,tMV);
+    mat4.multiply(tMVP,tProjection,tMV);
+  
+    // Clear screen, prepare for rendering
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // Set up uniforms & attributes
+    gl.uniformMatrix4fv(shaderProgram.MVmatrix,false,tMV);
+    gl.uniformMatrix3fv(shaderProgram.MVNormalmatrix,false,tMVn);
+    gl.uniformMatrix4fv(shaderProgram.MVPmatrix,false,tMVP);
+             
+    
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, POS);
+    gl.vertexAttribPointer(shaderProgram.PositionAttribute, POS.itemSize,
+      gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, NORM);
+    gl.vertexAttribPointer(shaderProgram.NormalAttribute, NORM.itemSize,
+      gl.FLOAT, false, 0, 0);
+
+
+
+
+   // gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+    //gl.vertexAttribPointer(shaderProgram.texcoordAttribute, textureBuffer.itemSize,
+    //  gl.FLOAT, false, 0, 0);
+    // Bind texture
+
+   
+    
+    // Do the drawing
+    gl.drawArrays(gl.TRIANGLES, 0, POS.numItems);
+    
+    
+
+}
+
+// render 3D models, grouped by texture
+function render_objs(){
+
+    var canvas = document.getElementById("mycanvas");
+    var gl = canvas.getContext("webgl");
+
+    // load shaders
+     // Read shader source
+     var vertexSource = document.getElementById("vertexShader").text;
+     var fragmentSource = document.getElementById("fragmentShader").text;
+ 
+     // Compile vertex shader
+     var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+     gl.shaderSource(vertexShader,vertexSource);
+     gl.compileShader(vertexShader);
+     if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+       alert(gl.getShaderInfoLog(vertexShader)); return null; }
+     
+     // Compile fragment shader
+     var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+     gl.shaderSource(fragmentShader,fragmentSource);
+     gl.compileShader(fragmentShader);
+     if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+       alert(gl.getShaderInfoLog(fragmentShader)); return null; }
+     
+     // Attach the shaders and link
+     var shaderProgram = gl.createProgram();
+     gl.attachShader(shaderProgram, vertexShader);
+     gl.attachShader(shaderProgram, fragmentShader);
+     gl.linkProgram(shaderProgram);
+     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+       alert("Could not initialize shaders"); }
+     gl.useProgram(shaderProgram);
+     
+     
+     
+     // with the vertex shader, we need to pass it positions
+     // as an attribute - so set up that communication
+
+
+     //ORIGINAL SHADER
+     shaderProgram.PositionAttribute = gl.getAttribLocation(shaderProgram, "vPosition");
+     gl.enableVertexAttribArray(shaderProgram.PositionAttribute);
+     
+     shaderProgram.NormalAttribute = gl.getAttribLocation(shaderProgram, "vNormal");
+     gl.enableVertexAttribArray(shaderProgram.NormalAttribute);
+     
+    
+     // this gives us access to the matrix uniform
+     shaderProgram.MVmatrix = gl.getUniformLocation(shaderProgram,"uMV");
+     shaderProgram.MVNormalmatrix = gl.getUniformLocation(shaderProgram,"uMVn");
+     shaderProgram.MVPmatrix = gl.getUniformLocation(shaderProgram,"uMVP");
+ 
+     // Attach samplers to texture units -- LATER
+     /*
+     shaderProgram.texSampler1 = gl.getUniformLocation(shaderProgram, "texSampler1");
+     gl.uniform1i(shaderProgram.texSampler1, 0);
+     shaderProgram.texSampler2 = gl.getUniformLocation(shaderProgram, "texSampler2");
+     gl.uniform1i(shaderProgram.texSampler2, 1);
+    
+    
+
+
+
+    for (var model in MODELS){
+        for (var mesh in MODELS[model]['meshes']){
+            //console.log(MODELS[model]['meshes'][mesh]);
+        
+            // linearize vertices, texture coordinates, and normal vectors
+            // used to draw this batch of polygons
+            
+            var V = new Float32Array(MODELS[model]['meshes'][mesh][0].flat())
+            var VT = new Float32Array(MODELS[model]['meshes'][mesh][1].flat())
+            var VN = new Float32Array(MODELS[model]['meshes'][mesh][2].flat())
+            
+            console.log(V)
+            //console.log(VT)
+            console.log(VN)
+            const factor = 10000;
+
+            VN.forEach((value, index, array) => {
+                array[index] = value * factor;
+            });
+            
+            var POS_BUFFER = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, POS_BUFFER);
+            gl.bufferData(gl.ARRAY_BUFFER, V, gl.STATIC_DRAW);
+            POS_BUFFER.itemSize = 3;
+            POS_BUFFER.numItems = V.length/3;
+
+            var NORM_BUFFER = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, NORM_BUFFER);
+            gl.bufferData(gl.ARRAY_BUFFER, VN, gl.STATIC_DRAW);
+            NORM_BUFFER.itemSize = 3;
+            NORM_BUFFER.numItems = VN.length/3;
+
+
+            // DON'T USE YET
+            var TEX_BUFFER = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, TEX_BUFFER);
+            gl.bufferData(gl.ARRAY_BUFFER, VT, gl.STATIC_DRAW);
+            TEX_BUFFER.itemSize = 2;
+            TEX_BUFFER.numItems = VT.length/2;
+
+            window.setTimeout(draw, 200, POS_BUFFER, NORM_BUFFER, TEX_BUFFER, shaderProgram, gl);
+        
+        }
+
+
+    }
+    
+    
+    
+}
+
+window.onload = render_objs;
+*/
+
+
+
+
+
+
+function draw(POS, NORM, TEX, shaderProgram, gl, canvas, texture, image) {
+
+    var eye = [5000,500, 10000];
+    var target = [0,100,100];
+    var up = [0,1,0];
+    
+
+    var tCamera = mat4.create();
+    mat4.lookAt(tCamera, eye, target, up);   
+
+    // Minimal transformations - centering the model
+    var tModel = mat4.create();
+    mat4.fromScaling(tModel,[100,100,100]);
+
+    var tProjection = mat4.create();
+    const aspect = canvas.clientWidth / canvas.clientHeight;
+    mat4.perspective(tProjection,Math.PI/4,aspect,10,100000);
+    
+    var tMVP = mat4.create();
+    let tMV = mat4.multiply(tMVP,tCamera,tModel); // "modelView" matrix
+    let tMVn = mat3.normalFromMat4(mat3.create(),tMV);
+    //let viewDirectionProjectionMatrix = mat4.multiply(mat4.create(), tProjection, viewMatrix);
+    mat4.multiply(tMVP,tProjection,tMV);
+
+    
+    // Set up uniforms & attributes
+    gl.uniformMatrix4fv(shaderProgram.MVmatrix, false, tMV);
+    gl.uniformMatrix3fv(shaderProgram.MVNormalmatrix, false, tMVn);
+    gl.uniformMatrix4fv(shaderProgram.MVPmatrix, false, tMVP);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, POS);
+    gl.vertexAttribPointer(shaderProgram.PositionAttribute, POS.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, NORM);
+    gl.vertexAttribPointer(shaderProgram.NormalAttribute, NORM.itemSize, gl.FLOAT, false, 0, 0);
+
+    // initialize vertex shader texture coordinate with texture buffer 
+    gl.bindBuffer(gl.ARRAY_BUFFER, TEX);
+    gl.vertexAttribPointer(shaderProgram.texcoordAttribute, TEX.itemSize, gl.FLOAT, false, 0, 0);
+
+    // Bind texture
+    //console.log(gl.TEXTURE0);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+    // Option 1 : Use mipmap, select interpolation mode
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+
+
+    console.log("THIS ABSOLUTELY NEEDS TO HAPPEN LAST");
+    // Do the drawing
+    gl.drawArrays(gl.TRIANGLES, 0, POS.numItems);
+    window.requestAnimationFrame(draw);
+}
+
+
+
+// render 3D models, grouped by texture
+function render_objs(IMAGES) {
+   
+    // load shaders
+    // Read shader source
+    var vertexSource = document.getElementById("vertexShader").text;
+    var fragmentSource = document.getElementById("fragmentShader").text;
+
+    // Compile vertex shader
+    var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertexShader, vertexSource);
+    gl.compileShader(vertexShader);
+    if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+        alert(gl.getShaderInfoLog(vertexShader));
+        return null;
+    }
+
+    // Compile fragment shader
+    var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragmentShader, fragmentSource);
+    gl.compileShader(fragmentShader);
+    if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+        alert(gl.getShaderInfoLog(fragmentShader));
+        return null;
+    }
+
+    // Attach the shaders and link
+    var shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        alert("Could not initialize shaders");
+    }
+    gl.useProgram(shaderProgram);
+
+    // with the vertex shader, we need to pass it positions
+    // as an attribute - so set up that communication
+    
+    // vs position
+    shaderProgram.PositionAttribute = gl.getAttribLocation(shaderProgram, "vPosition");
+    gl.enableVertexAttribArray(shaderProgram.PositionAttribute);
+
+    // vs normal
+    shaderProgram.NormalAttribute = gl.getAttribLocation(shaderProgram, "vNormal");
+    gl.enableVertexAttribArray(shaderProgram.NormalAttribute);
+
+
+    // vs texture coordinate
+    shaderProgram.texcoordAttribute = gl.getAttribLocation(shaderProgram, "vTexCoord");
+    gl.enableVertexAttribArray(shaderProgram.texcoordAttribute);
+
+
+    // this gives us access to the matrix uniform
+    shaderProgram.MVmatrix = gl.getUniformLocation(shaderProgram, "uMV");
+    shaderProgram.MVNormalmatrix = gl.getUniformLocation(shaderProgram, "uMVn");
+    shaderProgram.MVPmatrix = gl.getUniformLocation(shaderProgram, "uMVP");
+
+    // Attach samplers to texture units -- LATER
+    shaderProgram.texSampler1 = gl.getUniformLocation(shaderProgram, "texSampler1");
+    gl.uniform1i(shaderProgram.texSampler1, 0);
+
+    /*
+    shaderProgram.texSampler2 = gl.getUniformLocation(shaderProgram, "texSampler2");
+    gl.uniform1i(shaderProgram.texSampler2, 1);
+    */
+   // Clear screen, prepare for rendering
+    gl.clearColor(0.0, 1.0, 0.0, 1.0);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+   // gl.cullFace(gl.BACK);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+
+    var i = 0;
+    for (var model in MODELS) {
+        material_file = MODELS[model]['mtllib']; // material file associated with this model, for texturing
+
+        for (var mesh in MODELS[model]['meshes']) {
+            var V = new Float32Array(MODELS[model]['meshes'][mesh][0].flat());
+            var VN = new Float32Array(MODELS[model]['meshes'][mesh][2].flat());
+            var VT =  new Float32Array(MODELS[model]['meshes'][mesh][1].flat());
+
+            //console.log(VT);
+            var MAT = MATERIALS[material_file][mesh];
+
+            //console.log(V);
+            //console.log(VN);
+            // VERTEX AND NORMAL VBOs
+            var POS_BUFFER = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, POS_BUFFER);
+            gl.bufferData(gl.ARRAY_BUFFER, V, gl.STATIC_DRAW);
+            POS_BUFFER.itemSize = 3;
+            POS_BUFFER.numItems = V.length / 3;
+
+            var NORM_BUFFER = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, NORM_BUFFER);
+            gl.bufferData(gl.ARRAY_BUFFER, VN, gl.STATIC_DRAW);
+            NORM_BUFFER.itemSize = 3;
+            NORM_BUFFER.numItems = VN.length / 3;
+
+    
+            // TEXTURE VBO
+            var TEX_BUFFER = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, TEX_BUFFER);
+            gl.bufferData(gl.ARRAY_BUFFER, VT, gl.STATIC_DRAW);
+            TEX_BUFFER.itemSize = 2;
+            TEX_BUFFER.numItems = VT.length/2;
+
+            // INIT TEXTURE
+            
+            var texture = gl.createTexture();
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+           
+            // set pre-loaded texture corresponding to the mesh
+            var img = IMAGES[MAT['map_Kd']];
+      
+            draw(POS_BUFFER, NORM_BUFFER, TEX_BUFFER, shaderProgram, gl, canvas, texture, img);
+            i++;
+        }
+    }
+   window.requestAnimationFrame(render_objs);
+}
+
+/*
+function init_textures_render(){
+    var IMAGES = {};
+    for (var img in TEXTURES){
+        console.log(TEXTURES[img]);
+        IMAGES[img] = new Image();
+        IMAGES[img].src = TEXTURES[img];
+    }
+    console.log(IMAGES); 
+
+    /*
+    var image = new Image();
+    
+    image.onload = function () { 
+        window.setTimeout(render_objs, 200, image);
+    };
+    image.src = TEXTURES[MATERIALS['beachbowl_blender.mtl']['m6']['map_Kd']];
+    
+
+     // Use Promise.all to wait for all image loading promises to resolve
+     Promise.all(IMAGES)
+     .then((img) => {
+         // All textures are loaded, proceed with rendering
+        render_objs();
+     })
+     .catch((error) => {
+         // Handle errors during image loading
+         console.error(error);
+     });
+}
+*/
+IMAGES_LOADED = 0;
+
+function init_textures_render() {
+
+
+    var IMAGES = {};
+    for (var img in TEXTURES) {
+        IMAGES[img] = new Image();
+        IMAGES[img].src = TEXTURES[img];
+    }
+    render_objs(IMAGES);
+
+}
+
+
+var canvas = document.getElementById("mycanvas");
+var gl = canvas.getContext("webgl");
+window.onload = init_textures_render;

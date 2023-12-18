@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <title>Programming Assignment 8</title>
+        <script src="gl-matrix-min.js"></script>
+        <script src="camera.js"></script>
+        <script src="shaderCode.js"></script>
+        <script src="shaderHandler.js"></script>
+        <script src="suzanne.js"></script>
+        <script src="skull.js"></script>
+        <script src="cube_high_res.js"></script>
+        <script src="textureHandler.js"></script>
+        <script src="modelHandler.js"></script>
+        <script src="main.js"></script>
+        <style>
+            body {
+                font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Texutre Mapping (Color, Normal, Displacement, & Specularity)</h1>
+        <canvas id="canvas" width="700" height="500" style="border: 1px solid black"></canvas>
+
+        <ul>
+            <li>Skull uses color, normal, displacement, and specularity textures.</li>
+            <li>Monkey ghost shader doesn't use textures.</li>
+            <li>Cube uses color and specularity textures (notice how the left gem shines before the rest).</li>
+
+        </ul>
+
+        <h3>Sources</h3>
+        <ul>
+            <li><a href="https://cpetry.github.io/NormalMap-Online/">Website used to generate normal, displacement, and specularity maps.</a></li>
+            <li><a href="https://learnopengl.com/Advanced-Lighting/Normal-Mapping">Source used for determing how to apply normal maps.</a></li>
+            <li><a href="https://free3d.com/3d-model/skull-v3--785914.html">Skull model and texture.</a></li>
+            <li><a href="https://webglfundamentals.org/webgl/lessons/webgl-qna-apply-a-displacement-map-and-specular-map.html">Source used for determing how to apply displacement and specularity maps.</a></li>
+            <li>Images hosted on <a href="https://postimages.org/">postimages.org</a></li>
+            <li>Beautiful cube textures made by hand.</li>
+            <li>High-vertex cube model needed to have granular specularity control generated in Blender.</li>
+            <li>All .obj models converted to Javascript with ObjToJs</li>
+        </ul>
+    </body>
+</html>

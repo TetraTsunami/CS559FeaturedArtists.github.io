@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Super Mario Galaxy, Mini Model Viewer (Zeke)</title>
+  </head>
+  <style>
+    canvas {
+      border: 2px solid #394160;
+      display: block;
+      margin: 0 auto;
+    }
+
+    body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 50px auto;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+        .button-container {
+            position: absolute;
+            bottom: 50px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .button-container button {
+            margin-bottom: 5px;
+        }
+       
+  </style>
+  <body>
+    
+    <script id="vertexShader" type="not-js">
+        precision highp float;
+        attribute vec3 vPosition;
+        attribute vec3 vNormal;
+        attribute vec2 vTexCoord;
+        varying vec3 fPosition;
+        varying vec3 fNormal;
+        varying vec2 fTexCoord;
+        uniform mat4 uMV;
+        uniform mat4 uMVP;
+
+        void main(void) {
+            gl_Position = uMVP * vec4(vPosition, 1.0);
+            fPosition = (uMV * vec4(vPosition, 1.0)).xyz;
+            fNormal = vNormal;
+            fTexCoord = vTexCoord;
+        }
+
+    </script>
+
+
+    <script id="fragmentShader" type="not-js">
+        precision highp float;
+        varying vec3 fPosition;
+        varying vec3 fNormal;
+        varying vec2 fTexCoord;
+        uniform mat4 uMV;
+        uniform mat3 uMVn;
+        uniform sampler2D texSampler1;
+
+        //uniform vec3 lightV;
+        const vec3 lightV = vec3(0.0,-0.3,1.0);
+        const float lightI = 1.0;
+        const float diffuseC = 0.4;
+        uniform float ambientC;
+        uniform float specularC;
+        uniform float specularE;
+        const vec3  lightCol  = vec3(1.0,1.0,1.0);
+
+        vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+        float Kd, float Ks, float shininess) {
+            vec3 s = normalize(lightDir);
+            vec3 v = normalize(-fPosition);
+            vec3 h = normalize(v + s);
+            float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+            float spec = Ks * pow(max(0.0, dot(n, h)), shininess);
+            return vec2(diffuse, spec);
+        }
+
+        void main(void) {
+            vec3 texColor = texture2D(texSampler1, fTexCoord).xyz;
+            vec3 n = normalize(uMVn * fNormal);
+
+            vec3 ColorS = blinnPhongDir(lightV, n, 0.0, 0.0, 0.0, specularC, specularE).y * lightCol;
+            vec3 ColorAD = blinnPhongDir(lightV, n, lightI, ambientC, diffuseC, 0.0, 1.0).x * texColor;
+            gl_FragColor = vec4(ColorAD + ColorS, 1.0);
+        }
+    </script>
+    <canvas id="mycanvas" width="1100" height="600"></canvas>
+    <div class="button-container">
+    <button onclick="selectModel('beachbowl_blender.obj')">Beach Bowl Mini</button>
+    <button onclick="selectModel('megaleg.obj')">Bowser Jr's Robot Reactor Mini</button>
+    </div>
+    <br>
+    <div>
+        <h3>Controls:</h3>
+        <ul> 
+            <li>Use WASD to rotate the camera about the object, mousewheel to zoom, Note: use M for toggling object tilt with cursor (mouse).  Right now, it tilts about the Z-axis, so you have to move the camera around to find the "front", click the blue buttons to swap models. Do excuse the camera's funkiness</li>
+        </ul>
+        <h3>Notes:</h3>
+        <ul> 
+            <li>Used my own parser for .obj and .mtl formats, and loading textures with base64 encoding to memory prior to rendering</li>
+            <li>The camera has a 360-degree view about the models (using spherical coordinates), you can zoom in and out as well, smoothened to some extent</li>
+            <li>Phong-shading using some .mtl specified values, VBOs are bound on each frame, back-face cull, texturing.  Vertices are already laid out in the correct order and can be processed sequentially by gl.</li>
+            <li>Code is generalized for many models, I plan on expanding this for P8 to create an interactive level-select similar to the original game (Super Mario Galaxy, a chidhood favorite of mine)</li>
+            <a href="https://www.models-resource.com/wii/supermariogalaxy/">Super Mario Galaxy 3D Models</a>
+            <li>IMPORTANT: a particular angle value of the 360 camera might result in a null transform and error the program, I have taken measures to prevent this, but just refresh if it does happen.</li>
+         </ul>
+    </div>
+    
+    <script type="text/javascript" src="gl-matrix-min.js"></script>
+    <script src="models.js"></script>
+    <script src="p7.js" id="module"></script>
+
+  </body>
+</html>

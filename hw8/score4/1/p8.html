@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title> p8 </title>
+</head>
+
+<body style="background-color: rgb(255, 255, 255);">
+
+  <script id="vertexShader" type="not-js">
+        precision highp float;
+
+        attribute vec3 vPosition;
+        attribute vec3 vNormal;
+        attribute vec3 vColor;
+        attribute vec2 vTexCoord;
+        uniform mat4 uMV;
+        uniform mat4 uMVP;
+        uniform mat3 uMVn;
+        uniform float time;
+        varying vec3 fNormal;
+        varying vec3 fPosition;
+        varying vec3 fModelPosition;
+        varying vec3 fColor;
+        varying vec2 fTexCoord;
+        
+        float rand(vec2 co){
+            return fract(sin(dot(co, vec2(13.9898, 20.837))) * 43758.5453);
+        }
+        
+        vec2 Rotate2D(vec2 vec_in, float angle)
+        {
+            vec2 vec_out;
+            vec_out.x=cos(angle)*vec_in.x-sin(angle)*vec_in.y;
+            vec_out.y=sin(angle)*vec_in.x+cos(angle)*vec_in.y;
+            return vec_out;
+        }
+        
+        void main()
+        {           
+            gl_Position = uMVP * vec4(vPosition, 1.0);
+            fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+            fColor = vColor;
+            fNormal = vNormal;                            // In local coordinates
+            fModelPosition = vPosition;
+            fTexCoord = vTexCoord;
+        }
+      </script>
+
+  <script id="fragmentShader" type="not-js">
+          precision highp float;
+          varying vec3 fPosition;
+          varying vec3 fColor;
+          varying vec3 fNormal;
+          varying vec2 fTexCoord;
+          uniform mat4 uMV;
+          uniform mat3 uMVn;
+          uniform sampler2D texSampler;
+    
+          const vec3  lightV    = vec3(0.0,-0.3,1.0);
+          const float lightI    = 0.5;               // only for diffuse component
+          const float ambientC  = 0.8;
+          const float diffuseC  = 0.3;
+          const float specularC = 0.5;
+          const float specularE = 64.0;
+          const vec3  lightCol  = vec3(0.8,0.8,1.0);
+          const vec3  objectCol = vec3(1.0,0.6,0.0); // yellow-ish orange
+          vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+            float Kd, float Ks, float shininess) {
+            vec3 s = normalize(lightDir);
+            vec3 v = normalize(-fPosition);
+            vec3 h = normalize(v+s);
+            float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+            float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+            return vec2(diffuse, spec);
+          }
+    
+          void main(void) {
+            vec3 texColor=texture2D(texSampler,fTexCoord).xyz * fColor;
+            vec3 n = normalize(uMVn * fNormal);
+            vec3 ColorS  = blinnPhongDir(lightV,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+            vec3 ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*texColor;
+            gl_FragColor = vec4(ColorAD+ColorS,1.0);
+          }
+        </script>
+
+
+
+  <script id="fragmentShader-nolight" type="not-js">
+        precision highp float;
+        varying vec3 fPosition;
+        varying vec3 fColor;
+        varying vec3 fNormal;
+        varying vec2 fTexCoord;
+        uniform mat4 uMV;
+        uniform mat3 uMVn;
+        uniform sampler2D texSampler;
+  
+        const vec3  lightV    = vec3(0.0,-0.3,1.0);
+        const float lightI    = 0.5;               // only for diffuse component
+        const float ambientC  = 0.8;
+        const float diffuseC  = 0.3;
+        const float specularC = 0.4;
+        const float specularE = 32.0;
+        const vec3  lightCol  = vec3(1.0,1.0,1.0);
+        const vec3  objectCol = vec3(1.0,0.6,0.0); // yellow-ish orange
+        vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+          float Kd, float Ks, float shininess) {
+          vec3 s = normalize(lightDir);
+          vec3 v = normalize(-fPosition);
+          vec3 h = normalize(v+s);
+          float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+          float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+          return vec2(diffuse, spec);
+        }
+  
+        void main(void) {
+          vec3 texColor=texture2D(texSampler,fTexCoord).xyz * fColor;
+          vec3 n = normalize(uMVn * fNormal);
+          vec3 ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*texColor;
+          gl_FragColor = vec4(ColorAD,1.0);
+        }
+      </script>
+
+
+  <script id="vertexShader2" type="not-js">
+        precision highp float;
+
+        attribute vec3 vPosition;
+        attribute vec3 vNormal;
+        attribute vec3 vColor;
+        attribute vec2 vTexCoord;
+        uniform mat4 uMV;
+        uniform mat4 uMVP;
+        uniform mat3 uMVn;
+        uniform float time;
+        varying vec3 fNormal;
+        varying vec3 fPosition;
+        varying vec3 fModelPosition;
+        varying vec3 fColor;
+        
+        float rand(vec2 co){
+            return fract(sin(dot(co, vec2(13.9898, 20.837))) * 43758.5453);
+        }
+        
+        vec2 Rotate2D(vec2 vec_in, float angle)
+        {
+            vec2 vec_out;
+            vec_out.x=cos(angle)*vec_in.x-sin(angle)*vec_in.y;
+            vec_out.y=sin(angle)*vec_in.x+cos(angle)*vec_in.y;
+            return vec_out;
+        }
+        
+        void main()
+        {           
+            gl_Position = uMVP * vec4(vPosition, 1.0);
+            fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+            fColor = vColor;
+            fNormal = vNormal;                            // In local coordinates
+            fModelPosition = vPosition;
+        }
+      </script>
+
+  <script id="fragmentShader2" type="not-js">
+
+        precision highp float;
+        varying vec3 fPosition;
+        varying vec3 fModelPosition;
+        varying vec3 fColor;
+        varying vec3 fNormal;
+        varying vec2 fTexCoord;
+        uniform float time;
+        uniform mat4 uMV;
+        uniform mat3 uMVn;
+        uniform sampler2D texSampler;
+  
+        const vec3  lightV    = vec3(0.0,-0.3,1.0);
+        const float lightI    = 0.5;               // only for diffuse component
+        const float ambientC  = 0.8;
+        const float diffuseC  = 0.3;
+        const float specularC = 0.4;
+        const float specularE = 32.0;
+        const vec3  lightCol  = vec3(1.0,1.0,1.0);
+        const vec3  objectCol = vec3(1.0,0.6,0.0); // yellow-ish orange 
+        const float speed = 5.;
+        const vec3  holoColor  = vec3(0.5,0.75,1.0);
+        void main()
+        { 
+            if(fModelPosition.y >= 0.999 || fModelPosition.y <= -0.999) discard;
+            vec4 color;
+            if (sin(fModelPosition.y * 25. + time * speed) > 0.){
+                discard;
+            }
+            else {
+                color = vec4(holoColor, 0.5);
+                gl_FragColor = color;
+            }
+        }
+      </script>
+
+  <audio id="audio" src="Sweden.mp3"></audio>
+  <script src="gl-matrix.js"></script>
+  <script src="texture.js"></script>
+  <script src="matrix.js"></script>
+  <script src="gameObject.js"></script>
+  <script src="lib.js"></script>
+  <script src="utils.js"></script>
+  <script src="geometry.js"></script>
+  <script src="blocks.js"></script>
+  <script src="p8.js"></script>
+
+  <h1>Minecraft Java(Script) Edition</h1>
+  <h4>Click canvas to start</h4>
+  <canvas id="canvas"> </canvas>
+  <p>
+    Current:
+    <img id="icon" width=32 height=32></img>
+    Block rendered as:
+    <select id="shape" name="Shape">
+      <option value=0>Box</option>
+      <option value=1>Sphere</option>
+      <option value=2>Cone</option>
+    </select>
+    <b> Try change block render mode to other mode. </b>
+    <br />
+    use same control as Minecraft (<b>WASD</b>, <b>Space</b>: elevation, <b>Shift</b>: decline,
+    <b>left mouse</b> : destroy, <b>right mouse</b> : place, <b>scroll</b> : select block).
+    <br />
+    This simulates Minecraft with few features
+  <ul>
+    <li> Sand falling if without blocks under it</li>
+    <li> Grass spreads</li>
+    <li> Grass turn to dirt if there is a block above</li>
+    <li> Stone, Dirt, Grass, Cobblestone, Bedrock, (Oak) Plank, (Oak) Log, Sand, Observer, Red Mushroom Block</li>
+  </ul>
+  some blocks uses warp texture (Observer, Grassblock [blocks with different surface]), other shapes (sphere, cone)
+  always uses entire texture.
+  </p>
+
+
+</body>
+
+</html>

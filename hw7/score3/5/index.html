@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebGL Textured Cube with Lighting</title>
+    <style>
+        canvas {
+            display: block;
+            margin: auto;
+            background-color: #eee;
+        }
+        .slider-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mycanvas" width="500" height="500"></canvas>
+    <div class="slider-container">
+        <input id="slider1" type="range" min="-100" max="100" />
+        <input id="slider2" type="range" min="-100" max="100" />
+    </div>
+    <script id="vertexShader" type="x-shader/x-vertex">
+        attribute vec3 vPosition;
+        attribute vec3 vColor;
+        attribute vec2 vTexCoord;
+        attribute vec3 vNormal;
+        varying vec3 fColor;
+        varying vec2 fTexCoord;
+        varying vec3 fNormal;
+        varying vec4 vWorldPosition;
+        uniform mat4 uMVP;
+
+        void main(void) {
+            gl_Position = uMVP * vec4(vPosition, 1.0);
+            fColor = vColor;
+            fTexCoord = vTexCoord;
+            fNormal = vNormal;
+            vWorldPosition = uMVP * vec4(vPosition, 1.0); 
+        }
+    </script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        precision highp float;
+        varying vec3 fColor;
+        varying vec2 fTexCoord;
+        varying vec3 fNormal;
+        varying vec4 vWorldPosition;
+        uniform sampler2D uSampler;
+        uniform vec3 lightDirection1;
+        uniform vec3 lightColor1;
+        uniform vec3 lightDirection2;
+        uniform vec3 lightColor2;
+        uniform float cutoffAngle;
+
+        void main(void) {
+            vec3 normal = normalize(fNormal);
+            vec4 texColor = texture2D(uSampler, fTexCoord);
+
+            // Convert cutoff angle from degrees to radians
+            float cutoff = radians(cutoffAngle);
+
+            // Calculate spotlight effect for light 1
+            vec3 toLight1 = normalize(lightDirection1 - vWorldPosition.xyz);
+            float angle1 = dot(toLight1, -normalize(lightDirection1));
+            float intensity1 = smoothstep(cos(cutoff), 1.0, angle1);
+            vec3 lightEffect1 = lightColor1 * intensity1 * max(dot(normal, toLight1), 0.0);
+
+            // Calculate spotlight effect for light 2
+            vec3 toLight2 = normalize(lightDirection2 - vWorldPosition.xyz);
+            float angle2 = dot(toLight2, -normalize(lightDirection2));
+            float intensity2 = smoothstep(cos(cutoff), 1.0, angle2);
+            vec3 lightEffect2 = lightColor2 * intensity2 * max(dot(normal, toLight2), 0.0);
+
+            // Combine the texture color with the lighting effect
+            vec3 color = texColor.rgb * (fColor + lightEffect1 + lightEffect2);
+            gl_FragColor = vec4(color, texColor.a);
+        }
+    </script>
+    <script src="gl-matrix-min.js"></script>
+    <script src="rubiksCube.js"></script> 
+</body>
+</html>

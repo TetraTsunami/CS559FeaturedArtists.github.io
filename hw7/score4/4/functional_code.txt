@@ -1,0 +1,398 @@
+
+
+function init_textures_render() {
+
+    var canvas = document.getElementById("mycanvas");
+    var gl = canvas.getContext("webgl");
+    var IMAGES = {};
+ 
+    for (var img in TEXTURES) {
+        IMAGES[img] = new Image();
+        IMAGES[img].src = TEXTURES[img];
+    }
+
+    
+    const DELTA = .005;
+    // 360-deg camera angle configurations
+    var cameraRadius = 500;
+    var cameraTheta = 1.0; // non-zero or uMV will is a null-space and the program will crash
+    var cameraPhi = 1.0;
+
+    var scaleFactor = 1.0;
+
+    var keysPressed = {};
+    window.addEventListener('keydown', (event) => {
+        keysPressed[event.key] = true;
+
+    });
+    window.addEventListener('keyup', (event) => {
+        keysPressed[event.key] = false;
+        
+    });
+
+    // adjust camera rotation and zoom
+    var update_camera = function(){
+
+        // NOTE: for spherical coordinates PHI=[0,2PI], THETA=[0,PI]
+
+
+        if (keysPressed['w']) { // up
+            cameraPhi -= DELTA; 
+        }
+        if (keysPressed['a']) { // left
+            cameraTheta -= DELTA; 
+        }
+        if (keysPressed['s']) { // down
+            cameraPhi += DELTA; 
+        }
+        if (keysPressed['d']) { // right
+            cameraTheta += DELTA;
+        }
+        if (cameraPhi > (2*Math.PI)) cameraPhi = 0;
+        if (cameraTheta > Math.PI) cameraTheta = 0;
+        console.log(cameraPhi);
+        console.log(cameraTheta);
+        var rad = cameraRadius;
+        var phi = cameraPhi;
+        var theta = cameraTheta;
+        var eye = [rad * Math.sin(phi) * Math.cos(theta), rad * Math.cos(phi), rad * Math.sin(phi) * Math.sin(theta)];
+        eye = vec3.scale(eye, eye, scaleFactor);
+        return eye;
+    }
+
+    // WASD-keyboard input handling to interpolate camera position
+    /*
+    window.addEventListener('keydown', (event) => {
+        switch (event.key) {
+            case 'w':
+                cameraPhi -= 0.1; // Move up
+                break;
+            case 's':
+                cameraPhi += 0.1; // Move down
+                console.log(cameraPhi);
+                break;
+            case 'a':
+                cameraTheta -= 0.1; // Rotate left
+                break;
+            case 'd':
+                cameraTheta += 0.1; // Rotate right
+                break;
+        }
+
+        // Ensure cameraPhi stays within a reasonable range
+        //cameraPhi = Math.max(-Math.PI, Math.min(Math.PI / 2, cameraPhi));
+
+    });
+    */
+
+     // scroll-wheel handling for zoom factor on camera eye
+     window.addEventListener('wheel', (event) => {
+        var scrollAmount = event.deltaY;
+
+        if (scrollAmount > 0) { // away from object
+            // Scrolling downward (forward)
+            scaleFactor += 0.1;
+            console.log('Scrolling forward');
+        } else if (scrollAmount < 0) { // toward object
+            // Scrolling upward (backward)
+            scaleFactor = Math.max(scaleFactor - 0.1, 0.1);
+            console.log('Scrolling backward');
+        }
+
+        event.preventDefault();
+
+    });
+
+
+
+
+    // CONFIGURE GL, LOAD SHADERS
+    var vertexSource = document.getElementById("vertexShader").text;
+    var fragmentSource = document.getElementById("fragmentShader").text;
+
+    // Compile vertex shader
+    var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertexShader, vertexSource);
+    gl.compileShader(vertexShader);
+    if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+        alert(gl.getShaderInfoLog(vertexShader));
+        return null;
+    }
+
+    // Compile fragment shader
+    var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragmentShader, fragmentSource);
+    gl.compileShader(fragmentShader);
+    if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+        alert(gl.getShaderInfoLog(fragmentShader));
+        return null;
+    }
+
+    // Attach the shaders and link
+    var shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        alert("Could not initialize shaders");
+    }
+    gl.useProgram(shaderProgram);
+
+    // with the vertex shader, we need to pass it positions
+    // as an attribute - so set up that communication
+    
+    // vs position
+    shaderProgram.PositionAttribute = gl.getAttribLocation(shaderProgram, "vPosition");
+    gl.enableVertexAttribArray(shaderProgram.PositionAttribute);
+
+    // vs normal
+    shaderProgram.NormalAttribute = gl.getAttribLocation(shaderProgram, "vNormal");
+    gl.enableVertexAttribArray(shaderProgram.NormalAttribute);
+
+
+    // vs texture coordinate
+    shaderProgram.texcoordAttribute = gl.getAttribLocation(shaderProgram, "vTexCoord");
+    gl.enableVertexAttribArray(shaderProgram.texcoordAttribute);
+
+
+    // this gives us access to the matrix uniform
+    shaderProgram.MVmatrix = gl.getUniformLocation(shaderProgram, "uMV");
+    shaderProgram.MVNormalmatrix = gl.getUniformLocation(shaderProgram, "uMVn");
+    shaderProgram.MVPmatrix = gl.getUniformLocation(shaderProgram, "uMVP");
+
+    // Attach samplers to texture units -- LATER
+    shaderProgram.texSampler1 = gl.getUniformLocation(shaderProgram, "texSampler1");
+    gl.uniform1i(shaderProgram.texSampler1, 0);
+
+    /*
+    shaderProgram.texSampler2 = gl.getUniformLocation(shaderProgram, "texSampler2");
+    gl.uniform1i(shaderProgram.texSampler2, 1);
+    */
+    
+    render_objs(IMAGES);
+  
+    // render 3D models, grouped by texture
+    function render_objs() {
+        
+      
+        // Clear screen, prepare for rendering
+        gl.clearColor(0.0, 1.0, 0.0, 1.0);
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+        // gl.cullFace(gl.BACK);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        var i = 0;
+        for (var model in MODELS) {
+            material_file = MODELS[model]['mtllib']; // material file associated with this model, for texturing
+
+            for (var mesh in MODELS[model]['meshes']) {
+                var V = new Float32Array(MODELS[model]['meshes'][mesh][0].flat());
+                var VN = new Float32Array(MODELS[model]['meshes'][mesh][2].flat());
+                var VT =  new Float32Array(MODELS[model]['meshes'][mesh][1].flat());
+
+                //console.log(VT);
+                var MAT = MATERIALS[material_file][mesh];
+
+                //console.log(V);
+                //console.log(VN);
+                // VERTEX AND NORMAL VBOs
+                var POS_BUFFER = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, POS_BUFFER);
+                gl.bufferData(gl.ARRAY_BUFFER, V, gl.STATIC_DRAW);
+                POS_BUFFER.itemSize = 3;
+                POS_BUFFER.numItems = V.length / 3;
+
+                var NORM_BUFFER = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, NORM_BUFFER);
+                gl.bufferData(gl.ARRAY_BUFFER, VN, gl.STATIC_DRAW);
+                NORM_BUFFER.itemSize = 3;
+                NORM_BUFFER.numItems = VN.length / 3;
+
+        
+                // TEXTURE VBO
+                var TEX_BUFFER = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, TEX_BUFFER);
+                gl.bufferData(gl.ARRAY_BUFFER, VT, gl.STATIC_DRAW);
+                TEX_BUFFER.itemSize = 2;
+                TEX_BUFFER.numItems = VT.length/2;
+
+                // INIT TEXTURE
+                
+                var texture = gl.createTexture();
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            
+                // set pre-loaded texture corresponding to the mesh
+                var image = IMAGES[MAT['map_Kd']];
+        
+                draw();
+                function draw() {
+
+                    //var eye = [800,800, 1300];
+                    
+                    
+                   
+                    // Convert spherical coordinates to Cartesian coordinates
+                    // (360-ish camera model view)
+                    //var rad = cameraRadius;
+                    //var phi = cameraPhi;
+                    //var theta = cameraTheta;
+                   // var eye = [rad * Math.sin(phi) * Math.cos(theta), rad * Math.cos(phi), rad * Math.sin(phi) * Math.sin(theta)];
+
+                    //eye = vec3.scale(eye, eye, scaleFactor);
+                    //
+                    /*
+                    var angle1 = cameraPhi;
+                    var eye = [400*Math.sin(angle1),150.0,400.0*Math.cos(angle1)];
+                    console.log(eye);
+                    */
+
+                    var eye = update_camera();
+                    var target = [0,0,0];
+                    var up = [0,1,0];
+                    
+                
+                    var tCamera = mat4.create();
+                    mat4.lookAt(tCamera, eye, target, up);   
+                
+                    // Minimal transformations - centering the model
+                    var tModel = mat4.create();
+                    mat4.fromScaling(tModel,[10,10,10]);
+                
+                    var tProjection = mat4.create();
+                    const aspect = canvas.clientWidth / canvas.clientHeight;
+                    mat4.perspective(tProjection,Math.PI/4,aspect,10,100000);
+                    
+                    var tMVP = mat4.create();
+                    let tMV = mat4.multiply(tMVP,tCamera,tModel); // "modelView" matrix
+                    let tMVn = mat3.normalFromMat4(mat3.create(),tMV);
+                    //let viewDirectionProjectionMatrix = mat4.multiply(mat4.create(), tProjection, viewMatrix);
+                    mat4.multiply(tMVP,tProjection,tMV);
+                
+                    // Set up uniforms & attributes
+                    gl.uniformMatrix4fv(shaderProgram.MVmatrix, false, tMV);
+                    gl.uniformMatrix3fv(shaderProgram.MVNormalmatrix, false, tMVn);
+                    gl.uniformMatrix4fv(shaderProgram.MVPmatrix, false, tMVP);
+                
+                    gl.bindBuffer(gl.ARRAY_BUFFER, POS_BUFFER);
+                    gl.vertexAttribPointer(shaderProgram.PositionAttribute, POS_BUFFER.itemSize, gl.FLOAT, false, 0, 0);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, NORM_BUFFER);
+                    gl.vertexAttribPointer(shaderProgram.NormalAttribute, NORM_BUFFER.itemSize, gl.FLOAT, false, 0, 0);
+                
+                    // initialize vertex shader texture coordinate with texture buffer 
+                    gl.bindBuffer(gl.ARRAY_BUFFER, TEX_BUFFER);
+                    gl.vertexAttribPointer(shaderProgram.texcoordAttribute, TEX_BUFFER.itemSize, gl.FLOAT, false, 0, 0);
+                
+                    // Bind texture
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, texture);
+                
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                
+                    // mipmap, select interpolation mode
+                    gl.generateMipmap(gl.TEXTURE_2D);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+                
+                
+                    //console.log("THIS ABSOLUTELY NEEDS TO HAPPEN LAST");
+                    // Do the drawing
+                    gl.drawArrays(gl.TRIANGLES, 0, POS_BUFFER.numItems);
+                    //window.requestAnimationFrame(draw);
+                }
+
+
+                i++;
+            }
+        }
+       //console.log("are we here??");
+        window.requestAnimationFrame(render_objs);
+
+    }       
+}
+
+
+window.onload = init_textures_render; 
+
+
+
+
+
+// NON-DYNAMIC SHADERS
+
+   <!--
+    <script id="vertexShader" type="not-js">
+        attribute vec3 vPosition;
+        attribute vec3 vNormal;
+        //attribute vec3 vColor;
+        attribute vec2 vTexCoord;
+        varying vec3 fPosition;
+        //varying vec3 fColor;
+        varying vec3 fNormal;
+        varying vec2 fTexCoord;
+        uniform mat4 uMV;
+        uniform mat4 uMVP;
+        void main(void) {
+          gl_Position = uMVP * vec4(vPosition, 1.0);
+          fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+          //fColor = vColor;
+          fNormal = vNormal;                            // In local coordinates
+          fTexCoord = vTexCoord;
+       }
+      </script>
+  
+      <script id="fragmentShader" type="not-js">
+        precision highp float;
+        varying vec3 fPosition;
+        //varying vec3 fColor;
+        varying vec3 fNormal;
+        varying vec2 fTexCoord;
+        uniform mat4 uMV;
+        uniform mat3 uMVn;
+        uniform sampler2D texSampler1;
+        //uniform sampler2D texSampler2;
+  
+        const vec3  lightV    = vec3(0.0,-0.3,1.0);
+        const float lightI    = 1.0;               // only for diffuse component
+        const float ambientC  = 0.5;
+        const float diffuseC  = 0.4;
+        const float specularC = 0.3;
+        const float specularE = 32.0;
+        const vec3  lightCol  = vec3(1.0,1.0,1.0);
+        const vec3  objectCol = vec3(1.0,0.6,0.0); // yellow-ish orange
+        vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+          float Kd, float Ks, float shininess) {
+          vec3 s = normalize(lightDir);
+          vec3 v = normalize(-fPosition);
+          vec3 h = normalize(v+s);
+          float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+          float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+          return vec2(diffuse, spec);
+        }
+  
+        void main(void) {
+          vec3 texColor=texture2D(texSampler1,fTexCoord).xyz;
+          
+          //vec3 color = vec3(0.0,1.0,0.0);
+          vec3 n = normalize(uMVn * fNormal);
+          vec3 ColorS  = blinnPhongDir(lightV,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+          vec3 ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*texColor;
+          gl_FragColor = vec4(ColorAD+ColorS,1.0);
+
+          //gl_FragColor = vec4(n,1.0); rudimentary fs based on normal
+        }
+    
+      </script>
+
+    -->
+
+
+        <!-- test for texture img
+    <div>
+        <p>Taken from wikpedia</p>
+        <img src="data:/image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsSAAALEgHS3X78AAAAg0lEQVRYhWMsbqv+z4AP3H+BV5pBUQKv9AcC+pnwm057MOqAUQeMOoBFkEMQr4JzX+7jlTciYIGgogBe+QEPgVEHjDpg1AEs7+8TyOeminjlz93Gr1+RgROv/ICHwKgDRh0w6gAWBlEOAkok8cp+uHMcr7xT6He88gMeAqMOGHXAqAMAO+cU7TToSQkAAAAASUVORK5CYII="
+         alt="Red dot" />
+      </div>
+    -->
