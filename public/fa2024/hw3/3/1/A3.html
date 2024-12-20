@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fishing</title>
+    <style>
+        body {
+            display: flex; 
+            align-items: flex-start; 
+        }
+        #myCanvas {
+            margin-right: 20px;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column; 
+        }
+    </style>
+</head>
+<body>
+    <canvas id="myCanvas" width="800" height="800"></canvas>
+    <div class="controls">
+        <p>Change Wind Force</p>
+        <input id="x" type="range" min="-5" max="5">
+        
+        <p>Move Rod dx</p>
+        <input id="dx" type="range" min="0" max="400">
+        
+        <p>Move Rod dy</p>
+        <input id="dy" type="range" min="0" max="400">
+        
+        <p>Rotate Hook</p>
+        <input id="theta" type="range" min="-180" max="180">
+    </div>
+
+    <div style="display: none;">
+        <img id="background" src="ocean.jpg" width="800" height="800">
+    </div>
+    
+    <script src="gl-matrix-min.js"></script>
+    <script src="A3.js" id="module"></script>
+</body>
+</html>

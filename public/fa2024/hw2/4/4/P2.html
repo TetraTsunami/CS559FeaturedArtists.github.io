@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stampede</title>
+    <style>
+        body {
+            margin: 05;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            height: 100vh;
+            background-color: white;
+        }
+        #canvasContainer {
+            position: relative;
+            width: 1205px;
+            height: 605px;
+            overflow: hidden;
+            background-color: green;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+        #myCanvas {
+            border: 3px solid black;
+            background-color: transparent;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #heightSlider {
+             margin-top: 10px;
+             width: 1203px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="canvasContainer">
+        <canvas id="myCanvas" width="1200" height="600"></canvas>
+    </div>
+    <input type="range" id="heightSlider" min="0" max="600" value="300" />
+    <button id="toggleImages">Toggle Images</button>
+    <script src="P2.js" id="module"></script>
+</body>
+</html>

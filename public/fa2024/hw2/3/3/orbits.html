@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <canvas id="myCanvas" width="720" height="480"></canvas>
+</body>
+<script> "use strict"
+    function setup() {
+        var rot = 0;
+        var rot2 = 0;
+        var rot3 = 0;
+		var canvas = document.getElementById('myCanvas');
+        function circle(context) {
+            context.beginPath();
+            context.arc(0, 0, 20, 0, 2 * Math.PI, false);
+            context.fill();
+        };
+        function orbiter1(context) {
+            context.save();
+            context.translate(Math.sin(rot) * 50, Math.cos(rot) * 10);
+            context.scale(.5, .5);
+            context.fillStyle = 'blue';
+            circle(context);
+            context.restore();
+        }
+        function orbiter2(context) {
+            context.save();
+            context.rotate(.5 * Math.PI);
+            context.translate(Math.sin(rot2) * 100, Math.cos(rot2) * 5);
+            context.scale(.5, .5);
+            context.fillStyle = 'red';
+            circle(context);
+            context.restore();
+        }
+        function orbitee1(context) {
+            context.save();
+            context.translate(Math.sin(rot3) * 200, Math.cos(rot3) * 40);
+            context.scale(.5, .5);
+            rot += .011;
+            rot = (rot) % (2 * Math.PI);
+            rot2 += .03;
+            rot2 = (rot2) % (2 * Math.PI);
+            if (rot2 > .5 * Math.PI && rot2 < 1.5 * Math.PI) {
+                orbiter2(context);
+            }
+            if (rot > .5 * Math.PI && rot < 1.5 * Math.PI) {
+                orbiter1(context);
+            }
+            context.fillStyle = 'green';
+            circle(context);
+            if (!(rot > .5 * Math.PI && rot < 1.5 * Math.PI)) {
+                orbiter1(context);
+            }
+            if (!(rot2 > .5 * Math.PI && rot2 < 1.5 * Math.PI)) {
+                orbiter2(context);
+            }
+            context.restore();
+        }
+        function orbitee2(context) {
+            rot3 += .007;
+            rot3 = (rot3) % (2 * Math.PI);
+            context.fillStyle = 'yellow';
+            if (rot3 > .5 * Math.PI && rot3 < 1.5 * Math.PI) {
+                orbitee1(context);
+            }
+            context.save();
+            context.scale(4, 4);
+            circle(context);
+            context.restore();
+            if (!(rot3 > .5 * Math.PI && rot3 < 1.5 * Math.PI)) {
+                orbitee1(context);
+            }
+        }
+        function draw() {
+            var context = canvas.getContext('2d');
+            canvas.width = canvas.width;
+            context.translate(300, 300);
+            orbitee2(context);
+            window.requestAnimationFrame(draw);
+        };
+        window.requestAnimationFrame(draw);
+    };
+	window.onload = setup;
+</script>
+<head>
+  <meta name="description" content="E4 - Slider Animation">
+  <meta charset="utf-8">
+  <title>Orbits</title>
+</head>
+</html>

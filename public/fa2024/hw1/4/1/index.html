@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetrys</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="index.js"></script>
+</head>
+<body>
+    <div class="window">
+        <h1>Tetrys! 😊</h1>
+        <canvas id="canvas"></canvas>
+
+        <div class="settings">
+            <h5>Game Speed:</h5>
+            <p>(0.5x)</p>
+            <input id="slider" type="range" min="50" max="500"/>
+            <p>(5x)</p>
+        </div>
+
+        <div class="information">
+            <ul>
+                <li>Control falling block with keyboard keys <b>[A, S, and D]</b></li>
+                <li><b>Placing</b> down a falling block reward <b>10 points</b></li>
+                <li><b>Clearing</b> a line of blocks reward <b>100 points</b></li>
+                <li>Blocks <b>cannot</b> be placed higher than the <b>red ceiling line</b></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

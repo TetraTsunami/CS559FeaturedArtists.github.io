@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {          
+            background-color: white
+        }
+        canvas {
+            border: 1px solid #333;
+        }
+    </style>
+<body>
+    <canvas id="solarSystem" width="1000" height="800"></canvas>
+    <div id="controls">
+        <button id="addPlanet">Add Planet</button>
+        <input id="orbitShape" type="range" min="0" max="1" step="0.01" value="0">
+        <label for="orbitShape">Orbit Distance</label>
+        <input id="planetScale" type="range" min="0.5" max="2" step="0.1" value="1">
+        <label for="planetScale">Planet Scale</label>
+    </div>
+    <script type="text/javascript" src="gl-matrix-min.js"></script>
+    <script src="solar.js"></script>
+</body>
+</html>

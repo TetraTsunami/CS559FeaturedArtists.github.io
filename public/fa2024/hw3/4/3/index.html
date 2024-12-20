@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>P3</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+        sans-serif;
+      background-color: #000000;
+      color: #ffffff;
+      display: flex;
+      gap: 1rem;
+    }
+
+    canvas {
+      border: 2px solid skyblue;
+      width: 512px;
+    }
+
+    @media screen and (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      canvas {
+        width: 100% !important;
+      }
+    }
+
+    a {
+      color: #82cdff;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .slider {
+      display: flex;
+      align-items: center;
+      gap: 1ch;
+    }
+
+    label {
+      font-family: 'Courier New', Courier, monospace;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas width="512" height="512"></canvas>
+  <p>
+    A boid simulation, based on
+    <a href="https://scribe.rip/fragmentblog/simulating-flocking-with-the-boids-algorithm-92aef51b9e00" target="_blank">this article</a>
+    by Rohith Vishwajith.
+  </p>
+  <form>
+    <fieldset>
+      <legend>Boid count:</span></legend>
+      <div class="slider">
+        <input type="range" min="0" max="1000" value="100" step="1" id="size" oninput="update('size')">
+        <label id="sizeLabel"></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Boid max speed:</span></legend>
+      <div class="slider">
+        <input type="range" min="0" max="10" value="4" step="0.1" id="maxSpeed" oninput="update('maxSpeed')">
+        <label id="maxSpeedLabel"></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Boid max force:</legend>
+      <div class="slider">
+        <input type="range" min="0" max="1" value="0.2" step="0.1" id="maxForce" oninput="update('maxForce')">
+        <label id="maxForceLabel"></label>
+      </div>
+    </fieldset>
+  </form>
+
+  <script src="boids.js" defer></script>
+</body>
+
+</html>
