@@ -1,0 +1,363 @@
+Kabe00_v
+========
+  Textures:
+    - Kabe00
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 0, 0, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+WaterMat_v_x
+============
+  Textures:
+    - WaterWave
+        Offset: 0.41999998688697815, 0.41999998688697815
+        Rotation: 0.499984740745262
+    - WaterWave
+        Offset: 0, 0.41999998688697815
+        Scale: 1.100000023841858, 1.100000023841858
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 203, 224, 255, 87
+    - 0, 0, 0, 255
+
+  Material Colors:
+    - 204, 204, 204, 255
+    - 204, 204, 204, 255
+
+  Color Registers:
+    - 28, 28, 28, 48
+    - 4, -308, -862, 255
+
+
+
+Yane_b_v
+========
+  Textures:
+    - Yane00
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 0, 0, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+Yane_g_v
+========
+  Textures:
+    - Yane00_g
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 0, 0, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+door00_v
+========
+  Textures:
+    - door
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 0, 0, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+flowerP_v
+=========
+  Textures:
+    - parplehanataba
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 15, 15, 15, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+flowerW_v
+=========
+  Textures:
+    - whitetaba
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 15, 15, 15, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+flowerY_v
+=========
+  Textures:
+    - yellowhanataba
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 15, 15, 15, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+gaito_v
+=======
+  Textures:
+    - Gaito00
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 0, 0, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+grass00_v
+=========
+  Textures:
+    - puffleaf
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 15, 15, 15, 50
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+ground00_v
+==========
+  Textures:
+    - WaterBottom
+    - IndBendZara
+        Offset: 2.246999979019165, 2.246999979019165
+        Scale: 0.5, 1
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 114, 178, 255
+
+  Material Colors:
+    - 204, 204, 204, 255
+    - 204, 204, 204, 255
+
+  Color Registers:
+    - 0, 0, 0, -50
+    - 0, 89, 153, 255
+
+
+
+kirikabu00_v
+============
+  Textures:
+    - kirikabu00
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 0, 0, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+lawn00_v
+========
+  Textures:
+    - lawnleaf00
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 0, 0, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+rock00_v
+========
+  Textures:
+    - stonestripe00
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 0, 0, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+soil00_v
+========
+  Textures:
+    - soil00
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 0, 0, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+wood01_v
+========
+  Textures:
+    - tree00
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 18, 18, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
+
+
+
+woodpanel00_v
+=============
+  Textures:
+    - WoodPanel
+
+  Ambient Colors:
+    - 100, 100, 100, 195
+
+  Constant Colors:
+    - 0, 0, 0, 180
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368

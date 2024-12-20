@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @keyframes rainbow-text {
+            0%,100% { color: red; }
+            14% { color: orange; }
+            28% { color: yellow; }
+            42% { color: green; }
+            57% { color: blue; }
+            71% { color: indigo; }
+            85% { color: violet; }
+        }
+    
+        .rainbow {
+            animation: rainbow-text 5s linear infinite;
+        }
+    </style>
+    <title>4</title>
+    <script src="gl-matrix-min.js"></script>
+    
+</head>
+<body>
+    <canvas id="glCanvas" width="640" height="480"></canvas>
+    <script src="main.js"></script>
+    <button id="reverseRotationButton">
+        Reverse C<span class="rainbow">4</span>mer<span class="rainbow">4</span> Rot<span class="rainbow">4</span>tion
+    </button>
+</body>
+</html>

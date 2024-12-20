@@ -1,0 +1,67 @@
+AppearLightMat_v
+================
+  Textures:
+    - AppearLight
+        Offset: 0, -0.9818181991577148
+    - IndBendZara.9966666102409363
+        Scale: 1, 0.10000000149011612
+
+  Ambient Colors:
+    - 100, 100, 100, 201
+
+  Material Colors:
+    - 204, 204, 204, 255
+    - 204, 204, 204, 255
+
+  Color Registers:
+    - -54, -13, 0, 0
+
+
+
+Block_v
+=======
+  Textures:
+    - pffwall
+    - Vanish
+        Offset: 0, 5.9800004959106445
+        Scale: 1, 3.4000000953674316
+    - IndBendZara
+        Scale: 0.20000000298023224, 1.8310546875
+
+  Ambient Colors:
+    - 100, 100, 100, 201
+    - 60, 51, 26, 255
+    - 205, 255, 163, 255
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 203, 236, 255, 0
+    - 0, 0, 0, 368
+
+
+
+Kabe00_v
+========
+  Textures:
+    - Kabe00
+    - Vanish
+        Offset: 0, 5.9800004959106445
+        Scale: 1, 3.4000000953674316
+    - IndBendZara
+        Scale: 0.20000000298023224, 1.8310546875
+
+  Ambient Colors:
+    - 100, 100, 100, 201
+    - 60, 51, 26, 255
+    - 205, 255, 163, 255
+
+  Material Colors:
+    - 203, 203, 203, 255
+    - 203, 203, 203, 255
+
+  Color Registers:
+    - 255, 255, 255, 0
+    - 0, 0, 0, 368
