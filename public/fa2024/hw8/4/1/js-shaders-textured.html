@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Textured 3D Rendering</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <script id="vertexShader" type="not-js">
+      attribute vec3 vPosition;
+      attribute vec3 vNormal;
+      attribute vec2 vTexCoord;
+      varying vec3 fPosition;
+      varying vec3 fNormal;
+      varying vec2 fTexCoord;
+      uniform mat4 uMV;
+      uniform mat4 uMVP;
+      uniform float time;
+
+      void main(void) {
+        gl_Position = uMVP * vec4(vPosition, 50.0);
+        fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+        fNormal = vNormal;                            // In local coordinates
+        fTexCoord = vTexCoord;
+      }
+    </script>
+
+  <script id="fragmentShader" type="not-js">
+      precision highp float;
+      varying vec3 fPosition;
+      varying vec3 fNormal;
+      varying vec2 fTexCoord;
+      uniform mat4 uMV;
+      uniform mat3 uMVn;
+      uniform sampler2D texSampler1;
+      uniform sampler2D texSampler2;
+      uniform float time;
+
+      const float ambientC  = 0.5;
+      const float diffuseC  = 0.9;
+      const vec3  lightCol  = vec3(1.0,1.0,1.0);
+      
+      vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+        float Kd, float Ks, float shininess) {
+        vec3 s = normalize(lightDir);
+        vec3 v = normalize(-fPosition);
+        vec3 h = normalize(v+s);
+        float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+        float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+        return vec2(diffuse, spec);
+      }
+
+      void main(void) {
+        vec3 texColor1=texture2D(texSampler1,fTexCoord).xyz;
+        vec3 texColor2=texture2D(texSampler2,fTexCoord).xyz;
+        vec3 lightV = vec3(4.79 * cos(3.5*time), 1.29 * -sin(3.5*time), 6.45 * sin(2.7*time));
+        vec3 n = normalize(uMVn * fNormal);
+        vec3 ColorS  = blinnPhongDir(lightV,n,0.0,0.0,0.0,0.7,800.0).y*lightCol;
+        if (fNormal.z > 0.0 && fNormal.y==0.0) {
+          vec3 ColorAD = blinnPhongDir(lightV,n,1.0,ambientC,diffuseC,0.0,1.0).x*texColor2;
+          gl_FragColor = vec4(ColorAD+ColorS,1.0);
+        } else {
+          vec3 ColorAD = blinnPhongDir(lightV,n,1.0,ambientC,diffuseC,0.0,1.0).x*texColor1;
+          gl_FragColor = vec4(ColorAD+ColorS,1.0);
+        }
+      }
+    </script>
+  <canvas id="mycanvas" width="500" height="500"></canvas>
+  <br>
+
+  <label for="imageSelector">Texture:</label>
+  <select id="textureDropdown">
+    <option value="concert_img">concert</option>
+    <option value="goat_img">goat</option>
+    <option value="lightbulb_img">lightbulb</option>
+    <option value="northern_lights_img">northern lights</option>
+    <option value="sunset_img">sunset</option>
+    <option value="texaco_img">texaco</option>
+    <option value="uncrustable_img">uncrustable</option>
+  </select>
+  <br>
+  <label for="slider1">Rotation Speed:</label>
+  <input id="slider1" type="range" min="0" max="4" step="0.01" />
+  <br>
+  <label for="slider2">Rotate Model:</label>
+  <input id="slider2" type="range" min="-100" max="100" />
+  <br>
+  <label for="slider3">Zoom:</label>
+  <input id="slider3" type="range" min="20" max="300" />
+  <br>
+
+
+  <p>This project demonstrates a combination of many 3D modeling principles. Observe that the textures wrap around
+    multiple surfaces, and are illuminated using a combination of diffuse, ambient, and (moving!) specular lighting
+    elements. While shadows are not implemented, it is clear that the objects closer to the viewer obstruct those
+    behind it. Additionally, the combination of textures makes for a unique, artistic touch. <br><br>
+    Have fun selecting different textures and observe how they are displayed on the model!</p>
+  
+  <script type="text/javascript" src="gl-matrix-min.js"></script>
+
+  <script src="main.js" id="module"></script>
+  <script src="model.js" id="module"></script>
+
+  <script src="images/carbonfiber.js"></script>
+  <script src="images/concert.js"></script>
+  <script src="images/goat.js"></script>
+  <script src="images/lightbulb.js"></script>
+  <script src="images/northern-lights.js"></script>
+  <script src="images/sunset.js"></script>
+  <script src="images/texaco.js"></script>
+  <script src="images/uncrustable.js"></script>
+</body>
+
+</html>

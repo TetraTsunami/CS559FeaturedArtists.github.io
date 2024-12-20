@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Spaceship Adventure</title>
+</head>
+
+<body>
+  <script id="vertexShader" type="not-js">
+      attribute vec3 vPosition;
+      attribute vec3 vNormal;
+      // attribute vec3 vColor;
+      varying vec3 fPosition;
+      // varying vec3 fColor;
+      varying vec3 fNormal;
+      uniform mat4 uMV;
+      uniform mat4 uMVP;
+
+      void main(void) {
+        gl_Position = uMVP * vec4(vPosition, 1.0);
+        fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+        // fColor = vColor;
+        fNormal = vNormal;                            // In local coordinates
+     }
+    </script>
+
+    <script id="vertexShader2" type="not-js">
+      attribute vec3 vPosition;
+      attribute vec3 vNormal;
+      attribute vec3 vColor;
+      varying vec3 fPosition;
+      varying vec3 fNormal;
+      uniform mat4 uMV;
+      uniform mat4 uMVP;
+
+      void main(void) {
+        gl_Position = uMVP * vec4(vPosition, 1.0);
+        fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+        fNormal = vNormal;                            // In local coordinates
+     }
+    </script>
+
+  <script id="fragmentShader1" type="not-js">
+    precision highp float;
+      varying vec3 fPosition;
+      // varying vec3 fColor;
+      varying vec3 fNormal;
+      uniform mat4 uMV;
+      uniform mat3 uMVn;
+
+      //const vec3  lightV    = vec3(0.0,-0.3,1.0);
+      const vec3  lightV    = vec3(100,0,100);
+      const float lightI    = 1.0;               // only for diffuse component
+      const float ambientC  = 0.15;
+      const float diffuseC  = 0.5;
+      const float specularC = 0.8;
+      const float specularE = 32.0;
+      const vec3  lightCol  = vec3(1.0,1.0,0.2);
+      const vec3  objectCol = vec3(0.0,0.4,1.0); // Object color -- deep blue
+      vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+        float Kd, float Ks, float shininess) {
+        vec3 s = normalize(lightDir);
+        vec3 v = normalize(-fPosition);
+        vec3 h = normalize(v+s);
+        float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+        float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+        return vec2(diffuse, spec);
+      }
+
+      void main(void) {
+        vec3 n = normalize(uMVn * fNormal);
+        vec3 ColorS  = blinnPhongDir(lightV,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+        vec3 ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*objectCol;
+        gl_FragColor = vec4(ColorAD+ColorS,1.0);
+      }
+    </script>
+
+    <script id="fragmentShader2" type="not-js">
+    precision highp float;
+
+    varying vec3 fPosition; // Fragment position in world coordinates
+    varying vec3 fNormal;   // Fragment normal in world coordinates
+    uniform mat4 uMV;       // Model-View matrix
+    uniform mat3 uMVn;      // Normal matrix
+
+    const vec3 lightPos = vec3(0.0, 0.0, 0.0); // Position of the light source (world coordinates)
+    const float lightI = 1.0;                  // Intensity of the light
+    const float ambientC = 0.15;               // Ambient coefficient
+    const float diffuseC = 0.5;                // Diffuse coefficient
+    const float specularC = 0.8;               // Specular coefficient
+    const float specularE = 32.0;              // Specular exponent (shininess)
+    const vec3 lightCol = vec3(1.0, 1.0, 0.2); // Light color
+    const vec3 objectCol = vec3(0.0, 0.4, 0.3); // Object color (Green)
+
+    vec2 blinnPhongPos(vec3 lightPos, vec3 fragPos, vec3 n, float lightInt, float Ka,
+      float Kd, float Ks, float shininess) {
+        vec3 lightDir = normalize(lightPos - fragPos); // Direction from fragment to light
+        vec3 viewDir = normalize(-fragPos);           // Direction to the camera (assume camera at origin)
+        vec3 halfwayDir = normalize(viewDir + lightDir);
+
+        // Diffuse component
+        float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, lightDir));
+
+        // Specular component
+        float specular = Ks * pow(max(0.0, dot(n, halfwayDir)), shininess);
+
+        return vec2(diffuse, specular);
+    }
+
+    void main(void) {
+        vec3 n = normalize(uMVn * fNormal);         // Transform normal to eye coordinates
+        vec3 fragPos = fPosition;                  // Use fragment position directly
+
+        // Calculate Blinn-Phong lighting
+        vec2 lighting = blinnPhongPos(lightPos, fragPos, n, lightI, ambientC, diffuseC, specularC, specularE);
+
+        // Calculate color contributions
+        vec3 colorSpecular = lighting.y * lightCol;
+        vec3 colorAD = lighting.x * objectCol;
+
+        // Final color
+        gl_FragColor = vec4(colorAD + colorSpecular, 1.0);
+    }
+</script>
+
+      <script id="fragmentShader3" type="not-js">
+        precision highp float;
+          varying vec3 fPosition;
+          // varying vec3 fColor;
+          varying vec3 fNormal;
+          uniform mat4 uMV;
+          uniform mat3 uMVn;
+    
+          //const vec3  lightV    = vec3(0.0,-0.3,1.0);
+          const vec3  lightV    = vec3(100,0,100);
+          const float lightI    = 1.0;               // only for diffuse component
+          const float ambientC  = 0.15;
+          const float diffuseC  = 0.5;
+          const float specularC = 0.8;
+          const float specularE = 32.0;
+          const vec3  lightCol  = vec3(1.0,1.0,0.2);
+          const vec3  objectCol = vec3(1.0,1,0.0); // Object color -- Yellow
+          vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+            float Kd, float Ks, float shininess) {
+            vec3 s = normalize(lightDir);
+            vec3 v = normalize(-fPosition);
+            vec3 h = normalize(v+s);
+            float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+            float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+            return vec2(diffuse, spec);
+          }
+    
+          void main(void) {
+            vec3 n = normalize(uMVn * fNormal);
+            vec3 ColorS  = blinnPhongDir(lightV,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+            vec3 ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*objectCol;
+            gl_FragColor = vec4(ColorAD+ColorS,1.0);
+          }
+        </script>
+
+      <script id="fragmentShader4" type="not-js">
+        precision highp float;
+          varying vec3 fPosition;
+          // varying vec3 fColor;
+          varying vec3 fNormal;
+          uniform mat4 uMV;
+          uniform mat3 uMVn;
+    
+          //const vec3  lightV    = vec3(0.0,-0.3,1.0);
+          const vec3  lightV    = vec3(100,0,100);
+          const float lightI    = 1.0;               // only for diffuse component
+          const float ambientC  = 0.15;
+          const float diffuseC  = 0.5;
+          const float specularC = 0.8;
+          const float specularE = 32.0;
+          const vec3  lightCol  = vec3(1.0,1.0,0.2);
+          const vec3  objectCol = vec3(0.4,0.4, 0.5); // Grey
+          vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+            float Kd, float Ks, float shininess) {
+            vec3 s = normalize(lightDir);
+            vec3 v = normalize(-fPosition);
+            vec3 h = normalize(v+s);
+            float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+            float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+            return vec2(diffuse, spec);
+          }
+    
+          void main(void) {
+            vec3 n = normalize(uMVn * fNormal);
+            vec3 ColorS  = blinnPhongDir(lightV,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+            vec3 ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*objectCol;
+            gl_FragColor = vec4(ColorAD+ColorS,1.0);
+          }
+        </script>
+
+        <script id="fragmentShader5" type="not-js">
+          precision highp float;
+            varying vec3 fPosition;
+            // varying vec3 fColor;
+            varying vec3 fNormal;
+            uniform mat4 uMV;
+            uniform mat3 uMVn;
+      
+            //const vec3  lightV    = vec3(0.0,-0.3,1.0);
+            const vec3  lightV    = vec3(100,0,100);
+            const float lightI    = 1.0;               // only for diffuse component
+            const float ambientC  = 0.15;
+            const float diffuseC  = 0.5;
+            const float specularC = 0.8;
+            const float specularE = 32.0;
+            const vec3  lightCol  = vec3(1.0,1.0,0.2);
+            const vec3  objectCol = vec3(0.5,0.4,0.005); // Object color -- deep blue
+            vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+              float Kd, float Ks, float shininess) {
+              vec3 s = normalize(lightDir);
+              vec3 v = normalize(-fPosition);
+              vec3 h = normalize(v+s);
+              float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+              float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+              return vec2(diffuse, spec);
+            }
+      
+            void main(void) {
+              vec3 n = normalize(uMVn * fNormal);
+              vec3 ColorS  = blinnPhongDir(lightV,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+              vec3 ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*objectCol;
+              gl_FragColor = vec4(ColorAD+ColorS,1.0);
+            }
+          </script>
+
+
+          <script id="fragmentShader6" type="not-js">
+            precision highp float;
+              varying vec3 fPosition;
+              // varying vec3 fColor;
+              varying vec3 fNormal;
+              uniform mat4 uMV;
+              uniform mat3 uMVn;
+        
+              //const vec3  lightV    = vec3(0.0,-0.3,1.0);
+              const vec3  lightV    = vec3(100,0,100);
+              const float lightI    = 1.0;               // only for diffuse component
+              const float ambientC  = 0.15;
+              const float diffuseC  = 0.5;
+              const float specularC = 0.8;
+              const float specularE = 32.0;
+              const vec3  lightCol  = vec3(1.0,0.3,0.0);
+              const vec3  objectCol = vec3(0.4,0.2,0.005); // Object color -- deep blue
+              vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+                float Kd, float Ks, float shininess) {
+                vec3 s = normalize(lightDir);
+                vec3 v = normalize(-fPosition);
+                vec3 h = normalize(v+s);
+                float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+                float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+                return vec2(diffuse, spec);
+              }
+        
+              void main(void) {
+                vec3 n = normalize(uMVn * fNormal);
+                vec3 ColorS  = blinnPhongDir(lightV,n,0.0   ,0.0,     0.0,     specularC,specularE).y*lightCol;
+                vec3 ColorAD = blinnPhongDir(lightV,n,lightI,ambientC,diffuseC,0.0,      1.0      ).x*objectCol;
+                gl_FragColor = vec4(ColorAD+ColorS,1.0);
+              }
+            </script>
+
+  <canvas id="mycanvas" width="500" height="500"></canvas>
+  <br>
+  <input id="slider1" type="range" min="-200" max="200">
+  <script type="text/javascript" src="gl-matrix-min.js"></script>
+
+  <!-- Include all desired model js files here -->
+  <!-- <script src="Gear1.js" id="module"></script> -->
+  <script src="Spaceship.js" id="module_bc"></script>
+  <script src="sphere.js" id="module_sphere"></script>
+
+  <script src="HW7.js" id="module"></script>
+</body>
+
+</head>
+<body>
+  <h1>Spaceship Adventure!</h1>
+  <p>
+    Travel through space on your very own spaceship! Use the <strong>a</strong> and <strong>d</strong> keys to control the direction your ship is facing. 
+  </p>
+  <p>
+    Press <strong>space</strong> to propel your ship forward in the direction you're facing.
+  </p>
+  <p>
+    Use the slider to adjust the angle of the camera
+  </p>
+  <p>
+    The <strong>w</strong> and <strong>s</strong> keys adjust the bank of your ship (tilt left and tilt right). Banking impacts how quickly you can turn, and also looks pretty cool :)
+  </p>
+</body>
+</html>
+
+</html>

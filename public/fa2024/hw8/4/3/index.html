@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced Textured Scene with Shadow</title>
+</head>
+<body>
+<canvas id="mycanvas" width="700" height="600"></canvas>
+<div>
+  Camera rotation: <input id="sliderCam" type="range" min="-100" max="100" value="0"/>
+  X rotation: <input id="sliderX" type="range" min="-100" max="100" value="0"/>
+  Y rotation: <input id="sliderY" type="range" min="-100" max="100" value="0"/>
+  Z rotation: <input id="sliderZ" type="range" min="-100" max="100" value="0"/><br/>
+  X Translation: <input id="sliderTX" type="range" min="-100" max="100" value="0"/>
+  Y Translation: <input id="sliderTY" type="range" min="-100" max="100" value="0"/>
+  Z Translation: <input id="sliderTZ" type="range" min="-100" max="100" value="0"/><br/><br/>
+  Light angle: <input id="sliderLight" type="range" min="-100" max="100" value="0" />
+</div>
+<p>Normal mapping was applied to the roof</p>
+<!-- Vertex Shader -->
+<script id="vertexShader" type="not-js">
+attribute vec3 vPosition;
+attribute vec3 vNormal;
+attribute vec2 vTexCoord;
+attribute vec3 vTangent;
+
+varying vec3 fPosition;
+varying vec3 fNormal;
+varying vec2 fTexCoord;
+varying mat3 TBN;
+varying vec4 vLightSpacePos;
+
+uniform mat4 uModel;
+uniform mat4 uMV;
+uniform mat4 uMVP;
+uniform mat3 uMVn;
+uniform mat4 uLightViewMatrix;
+uniform mat4 uLightProjectionMatrix;
+
+void main(void) {
+    gl_Position = uMVP * vec4(vPosition, 1.0);
+    fPosition = (uMV * vec4(vPosition,1.0)).xyz;
+    vec3 n = normalize(uMVn * vNormal);
+    vec3 t = normalize(uMVn * vTangent);
+    vec3 b = normalize(cross(n,t));
+    TBN = mat3(t,b,n);
+    fNormal = n;
+    fTexCoord = vTexCoord;
+    vec4 worldPos = uModel * vec4(vPosition,1.0);
+    vLightSpacePos = uLightProjectionMatrix * uLightViewMatrix * worldPos;
+}
+</script>
+
+<!-- Fragment Shader -->
+<script id="fragmentShader" type="not-js">
+precision highp float;
+
+varying vec3 fPosition;
+varying vec3 fNormal;
+varying vec2 fTexCoord;
+varying mat3 TBN;
+varying vec4 vLightSpacePos;
+
+uniform sampler2D texSampler;
+uniform sampler2D normalMapSampler;
+uniform sampler2D decalSampler;
+uniform bool uUseNormalMap;
+uniform bool uUseDecal;
+uniform vec3 uLightDir;
+uniform vec3 uLightColor;
+uniform float uSpecularIntensity;
+uniform float uSpecularPower;
+uniform sampler2D uShadowMapSampler;
+uniform bool uShadowPass;
+
+const float ambientC  = 0.4;
+const float diffuseC  = 0.6;
+const float specularC = 0.3;
+
+float calculateShadow(vec4 lightSpacePos) {
+    vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+    vec2 shadowUV = projCoords.xy * 0.5 + 0.5;
+    if(shadowUV.x<0.0||shadowUV.x>1.0||shadowUV.y<0.0||shadowUV.y>1.0||projCoords.z>1.0) {
+        return 1.0;
+    }
+    float shadowMapDepth = texture2D(uShadowMapSampler, shadowUV).r;
+    float currentDepth = projCoords.z*0.5+0.5;
+    float bias = 0.0001;
+    float shadow = currentDepth - bias > shadowMapDepth ? 0.0 : 1.0;
+
+    return shadow;
+}
+
+void main(void) {
+    if(uShadowPass) {
+        return;
+    }
+
+    vec4 baseColor = texture2D(texSampler, fTexCoord);
+    vec3 n = fNormal;
+
+    if(uUseNormalMap) {
+        vec3 normalMapColor = texture2D(normalMapSampler, fTexCoord).xyz;
+        vec3 nTangentSpace = normalize(normalMapColor * 2.0 - 1.0);
+        n = normalize(TBN * nTangentSpace);
+    }
+
+    vec3 s = normalize(uLightDir);
+    vec3 v = normalize(-fPosition);
+    vec3 h = normalize(v+s);
+    float diffuse = max(0.0, dot(n,s));
+    float spec = pow(max(0.0, dot(n,h)), uSpecularPower) * uSpecularIntensity;
+    vec3 color = (ambientC + diffuseC*diffuse)*baseColor.xyz + specularC*spec*uLightColor;
+
+    if(uUseDecal) {
+       vec4 decalColor = texture2D(decalSampler, fTexCoord);
+       color = mix(color, decalColor.xyz, decalColor.a);
+    }
+
+    float shadow = calculateShadow(vLightSpacePos);
+    color *= shadow;
+
+    gl_FragColor = vec4(color,1.0);
+}
+</script>
+
+<script src="gl-matrix-min.js"></script>
+<script src="house_scene.js"></script>
+</body>
+</html>

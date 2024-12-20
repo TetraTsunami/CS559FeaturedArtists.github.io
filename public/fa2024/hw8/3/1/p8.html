@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Programming Assignment #8</title>
+  </head>
+
+  <body>
+    <script id="vertexShader" type="not-js">
+      attribute vec3 vPosition;
+      attribute vec3 vNormal;
+      attribute vec3 vColor;
+      attribute vec2 vTexCoord;
+      varying vec3 fPosition;
+      varying vec3 fColor;
+      varying vec3 fNormal;
+      varying vec2 fTexCoord;
+      uniform mat4 uMV;
+      uniform mat4 uMVP;
+      
+      // Define a light direction (e.g., from above)
+      uniform vec3 uLightDirection;
+
+      void main(void) {
+        // Calculate the diffuse lighting intensity based on the light direction and the surface normal
+        float diff = max(dot(normalize(vNormal), normalize(uLightDirection)), 0.0);
+        
+        // Apply the lighting effect to the vertex color
+        fColor = vColor * diff;  // Color will be modulated by the diffuse intensity
+        
+        gl_Position = uMVP * vec4(vPosition, 1.0);
+        fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+        fNormal = vNormal;                            // In local coordinates
+        fTexCoord = vTexCoord;
+     }
+	</script>
+
+    <script id="fragmentShader" type="not-js">
+      precision highp float;
+      varying vec3 fPosition;
+      varying vec3 fColor;
+      varying vec3 fNormal;
+      varying vec2 fTexCoord;
+      uniform mat4 uMV;
+      uniform mat3 uMVn;
+      uniform sampler2D texSampler1;
+      uniform sampler2D texSampler2;
+
+      const vec3  lightV    = vec3(0.0, 0.0, 1.0);
+      const float lightI    = 1.25;               // only for diffuse component
+      const float ambientC  = 0.6;
+      const float diffuseC  = 0.4;
+      const float specularC = 0.7;
+      const float specularE = 16.0;
+      const vec3  lightCol  = vec3(1.0, 1.0, 1.0);
+      const vec3  objectCol = vec3(1.0, 0.1, 0.0); // yellow-ish orange
+
+      vec2 blinnPhongDir(vec3 lightDir, vec3 n, float lightInt, float Ka,
+        float Kd, float Ks, float shininess) {
+        vec3 s = normalize(lightDir);
+        vec3 v = normalize(-fPosition);
+        vec3 h = normalize(v+s);
+        float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+        float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+        return vec2(diffuse, spec);
+      }
+
+      void main(void) {
+        vec3 texColor = texture2D(texSampler1, fTexCoord).xyz;
+        vec3 n = normalize(uMVn * fNormal);
+
+        // Polychrome effect: Use a sine wave or normal-based modification
+        // This will give a rainbow effect based on the surface's orientation.
+        vec3 rainbowEffect = vec3(
+            0.5 + 0.5 * sin(fPosition.x * 3.0),  // Variation based on X position
+            0.5 + 0.5 * sin(fPosition.y * 3.0),  // Variation based on Y position
+            0.5 + 0.5 * sin(fPosition.z * 3.0)   // Variation based on Z position
+        );
+
+        // Calculate light effects (specular and diffuse)
+        vec3 ColorS  = blinnPhongDir(lightV, n, 0.0, 0.0, 0.0, specularC, specularE).y * lightCol;
+        vec3 ColorAD = blinnPhongDir(lightV, n, lightI, ambientC, diffuseC, 0.0, 1.0).x * texColor;
+
+        // Apply the polychrome effect as a modifier to the color
+        gl_FragColor = vec4(ColorAD + ColorS * rainbowEffect, 1.0);
+      }
+</script>
+
+    <canvas id="mycanvas" width="500" height="500"></canvas>
+    <br>
+    <input id="slider1" type="range" min="-100" max="100" />
+    <input id="slider2" type="range" min="-1" max="1" step = "0.01"	/>
+    <script type="text/javascript" src="gl-matrix-min.js"></script>
+    <script src="p8.js" id="module"></script>
+  </body>
+</html>

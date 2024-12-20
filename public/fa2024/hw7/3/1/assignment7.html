@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Earth and Moon</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        .controls {
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .controls button {
+            display: block;
+            margin: 5px 0;
+            padding: 5px;
+            width: 150px;
+        }
+        .controls input[type="range"] {
+            width: 140px;
+        }
+        canvas { 
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script id="vertexShader" type="not-js">
+        attribute vec3 vPosition;
+        attribute vec3 vNormal;
+        
+        varying vec3 fPosition;
+        varying vec3 fNormal;
+        varying vec3 fToLight;
+        varying vec3 fToCamera;
+        
+        uniform mat4 uMV;
+        uniform mat4 uMVP;
+        uniform vec3 uLightPosition;
+        
+        void main(void) {
+            vec4 worldPos = uMV * vec4(vPosition, 1.0);
+            gl_Position = uMVP * vec4(vPosition, 1.0);
+            fPosition = worldPos.xyz;
+            fNormal = vNormal;
+            fToLight = normalize(uLightPosition - worldPos.xyz);
+            fToCamera = normalize(-worldPos.xyz);
+        }
+    </script>
+    
+    <script id="fragmentShader" type="not-js">
+        precision highp float;
+        
+        varying vec3 fPosition;
+        varying vec3 fNormal;
+        varying vec3 fToLight;
+        varying vec3 fToCamera;
+        
+        uniform mat3 uMVn;
+        uniform vec3 uColor;
+        uniform float uIsEarth;
+        uniform float uSpecularStrength;
+        
+        void main(void) {
+            vec3 normal = normalize(uMVn * fNormal);
+            vec3 toLight = normalize(fToLight);
+
+            vec3 toCamera = normalize(fToCamera);
+            vec3 halfDir = normalize(toLight + toCamera);
+            
+            float ambient = 0.3;
+            float diff = max(dot(normal, toLight), 0.0);
+            
+            float spec = 0.2;
+            if (uIsEarth > 0.5) {
+                spec = pow(max(dot(normal, halfDir), 0.0), 32.0) * uSpecularStrength;
+            }
+            
+            float nightDimming = smoothstep(-0.2, 0.2, dot(normal, toLight));
+            
+            vec3 color = uColor * (ambient + diff * 0.8) * mix(0.2, 1.0, nightDimming);
+            color += vec3(1.0) * spec;
+            
+            gl_FragColor = vec4(color, 1.0);
+        }
+    </script>
+
+    <script id="atmosphereVertex" type="not-js">
+        attribute vec3 vPosition;
+        
+        varying vec3 fPosition;
+        varying vec3 fToCamera;
+
+        
+        uniform mat4 uMV;
+        uniform mat4 uMVP;
+        uniform vec3 uLightPosition;
+        
+        void main(void) {
+
+            vec4 worldPos = uMV * vec4(vPosition * 1.05, 1.0);
+            gl_Position = uMVP * vec4(vPosition * 1.05, 1.0);
+            fPosition = worldPos.xyz;
+            fToCamera = normalize(-worldPos.xyz);
+        }
+    </script>
+    
+    <script id="atmosphereFragment" type="not-js">
+        precision highp float;
+        
+        varying vec3 fPosition;
+        varying vec3 fToCamera;
+        
+        uniform vec3 uLightPosition;
+        
+        void main(void) {
+            vec3 toLight = normalize(uLightPosition - fPosition);
+
+            float intensity = pow(1.0 - abs(dot(fToCamera, normalize(fPosition))), 2.0);
+            float sunEffect = pow(max(dot(fToCamera, toLight), 0.0), 9.0);
+            
+            vec3 atmosphereColor = vec3(0.4, 0.6, 1.0) * intensity * 0.5;
+            atmosphereColor += vec3(1.0, 0.8, 0.6) * sunEffect * 0.5;
+            
+            gl_FragColor = vec4(atmosphereColor, intensity * 0.6);
+        }
+    </script>
+
+    <div class="controls">
+        <button id="freeCamera">Free Camera</button>
+        <button id="earthStationary">Earth View</button>
+        <button id="moonTracking">Moon Tracking</button>
+        <button id="topDown">Top Down</button>
+        <button id="cinematic">Cinematic View</button>
+        <div>
+            <label>Manual Controls (Free Camera):</label><br>
+            <label>Orbit: <input id="orbitSlider" type="range" min="0" max="360" value="0"></label><br>
+            <label>Elevation: <input id="elevationSlider" type="range" min="-80" max="80" value="20"></label><br>
+            <label>Distance: <input id="distanceSlider" type="range" min="5" max="30" value="15"></label>
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+    <script>
+        function start() {
+            const canvas = document.getElementById("canvas");
+            
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            const gl = canvas.getContext("webgl", { alpha: false });
+
+            // enable blending and depth testing
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            gl.enable(gl.DEPTH_TEST);
+
+            const mainProgram = createProgram(gl, "vertexShader", "fragmentShader");
+            const atmosphereProgram = createProgram(gl, "atmosphereVertex", "atmosphereFragment");
+
+            // locatoins for the main program
+            const mainLocations = {
+                attributes: {
+                    position: gl.getAttribLocation(mainProgram, "vPosition"),
+                    normal: gl.getAttribLocation(mainProgram, "vNormal")
+                },
+                uniforms: {
+                    mv: gl.getUniformLocation(mainProgram, "uMV"),
+                    mvp: gl.getUniformLocation(mainProgram, "uMVP"),
+                    mvn: gl.getUniformLocation(mainProgram, "uMVn"),
+                    color: gl.getUniformLocation(mainProgram, "uColor"),
+                    lightPos: gl.getUniformLocation(mainProgram, "uLightPosition"),
+                    isEarth: gl.getUniformLocation(mainProgram, "uIsEarth"),
+                    specularStrength: gl.getUniformLocation(mainProgram, "uSpecularStrength")
+                }
+            };
+
+            // locations for the atmosphere program
+            const atmosphereLocations = {
+                attributes: {
+                    position: gl.getAttribLocation(atmosphereProgram, "vPosition") // position
+                },
+                uniforms: {
+                    mv: gl.getUniformLocation(atmosphereProgram, "uMV"), // model view
+                    mvp: gl.getUniformLocation(atmosphereProgram, "uMVP"), // model view projection
+                    lightPos: gl.getUniformLocation(atmosphereProgram, "uLightPosition") // light position
+                }
+            };
+
+            // Instantuate sphere geometry and buffers
+            const sphere = createSphere(32);
+            const buffers = {
+                position: createBuffer(gl, sphere.positions),
+                normal: createBuffer(gl, sphere.normals),
+                index: createBuffer(gl, sphere.indices, gl.ELEMENT_ARRAY_BUFFER)
+            };
+
+            // instantiate camera state
+            const cameraState = {
+                mode: 'free',
+                current: {
+                    position: vec3.fromValues(0, 5, 15),
+                    target: vec3.fromValues(0, 0, 0),
+                    up: vec3.fromValues(0, 1, 0)
+                },
+                target: {
+                    position: vec3.fromValues(0, 5, 15),
+                    target: vec3.fromValues(0, 0, 0),
+                    up: vec3.fromValues(0, 1, 0)
+                },
+                transition: 0,
+                transitionDuration: 60,
+                cinematicTime: 0
+            };
+
+            // camera modes
+            const cameraModes = {
+                free: {
+                    update: (state, moonPos) => {
+                        const orbit = document.getElementById('orbitSlider').value * Math.PI / 180;
+                        const elevation = document.getElementById('elevationSlider').value * Math.PI / 180;
+                        const distance = document.getElementById('distanceSlider').value;
+                        
+                        return {
+                            position: vec3.fromValues(
+                                distance * Math.cos(elevation) * Math.sin(orbit),
+                                distance * Math.sin(elevation),
+                                distance * Math.cos(elevation) * Math.cos(orbit)
+                            ),
+                            target: vec3.fromValues(0, 0, 0),
+                            up: vec3.fromValues(0, 1, 0)
+                        };
+                    }
+                },
+                earthStationary: {
+                    update: (state, moonPos) => ({
+                        position: vec3.fromValues(0, 2, 8),
+                        target: vec3.fromValues(0, 0, 0),
+                        up: vec3.fromValues(0, 1, 0)
+                    })
+                },
+                moonTracking: {
+                    update: (state, moonPos) => {
+                        return {
+                            position: vec3.add(vec3.create(), moonPos, vec3.fromValues(2, 1, 2)),
+                            target: moonPos,
+                            up: vec3.fromValues(0, 1, 0)
+                        };
+                    }
+                },
+                topDown: {
+                    update: (state, moonPos) => ({
+                        position: vec3.fromValues(0, 20, 0),
+                        target: vec3.fromValues(0, 0, 0),
+                        up: vec3.fromValues(0, 0, -1)
+                    })
+                },
+                cinematic: {
+                    update: (state, moonPos) => {
+                        // this essentially creates a circular path around the Earth
+                        state.cinematicTime += 0.005;
+                        const radius = 15;
+                        const height = 5 + Math.sin(state.cinematicTime * 0.5) * 3;
+                        return {
+                            position: vec3.fromValues(
+                                radius * Math.sin(state.cinematicTime),
+                                height,
+                                radius * Math.cos(state.cinematicTime)
+                            ),
+                            target: vec3.fromValues(
+                                Math.sin(state.cinematicTime * 0.5) * 3,
+                                0,
+                                Math.cos(state.cinematicTime * 0.5) * 3
+                            ),
+                            up: vec3.fromValues(0, 1, 0)
+                        };
+                    }
+                }
+            };
+
+            function updateCamera(moonPosition) {
+                const targetState = cameraModes[cameraState.mode].update(cameraState, moonPosition);
+                
+                if (cameraState.transition < cameraState.transitionDuration) {
+                    cameraState.transition++;
+                    const t = Math.sin(cameraState.transition / cameraState.transitionDuration * Math.PI * 0.5);
+                    
+                    vec3.lerp(cameraState.current.position, cameraState.target.position, targetState.position, t);
+
+
+                    vec3.lerp(cameraState.current.target, cameraState.target.target, targetState.target, t);
+                    vec3.lerp(cameraState.current.up, cameraState.target.up, targetState.up, t);
+                } else {
+                    cameraState.current = targetState;
+                }
+                
+                return mat4.lookAt(
+                    mat4.create(),
+                    cameraState.current.position,
+                    cameraState.current.target,
+                    cameraState.current.up
+                );
+            }
+
+            function drawEarthAndAtmosphere(gl, mainProgram, atmosphereProgram, mainLocations, atmosphereLocations, buffers, 
+                                         viewMatrix, projMatrix, modelMatrix, lightPosition) {
+                // drawing the Earth
+                gl.useProgram(mainProgram);
+                gl.uniform3fv(mainLocations.uniforms.lightPos, lightPosition);
+
+
+                gl.uniform1f(mainLocations.uniforms.isEarth, 1.0);
+                gl.uniform1f(mainLocations.uniforms.specularStrength, 0.8);
+                drawSphere(gl, mainLocations, buffers, viewMatrix, projMatrix, modelMatrix, [0.2, 0.5, 0.8]);
+
+                // drawing the atmosphere
+                gl.enable(gl.BLEND);
+                gl.useProgram(atmosphereProgram);
+                
+                gl.uniform3fv(atmosphereLocations.uniforms.lightPos, lightPosition);
+                drawSphere(gl, atmosphereLocations, buffers, viewMatrix, projMatrix, modelMatrix, [0.4, 0.6, 1.0]);
+                gl.disable(gl.BLEND);
+            }
+
+            function drawMoon(gl, program, locations, buffers, viewMatrix, projMatrix, modelMatrix, lightPosition) {
+                gl.useProgram(program);
+                gl.uniform3fv(locations.uniforms.lightPos, lightPosition);
+
+
+                gl.uniform1f(locations.uniforms.isEarth, 0.0);
+                gl.uniform1f(locations.uniforms.specularStrength, 0.2);
+                drawSphere(gl, locations, buffers, viewMatrix, projMatrix, modelMatrix, [0.8, 0.8, 0.8]);
+            }
+
+            function drawSphere(gl, locations, buffers, viewMatrix, projMatrix, modelMatrix, color) {
+                const mvMatrix = mat4.multiply(mat4.create(), viewMatrix, modelMatrix);
+                const mvpMatrix = mat4.multiply(mat4.create(), projMatrix, mvMatrix);
+                const normalMatrix = mat3.normalFromMat4(mat3.create(), mvMatrix);
+
+                gl.uniformMatrix4fv(locations.uniforms.mv, false, mvMatrix);
+                gl.uniformMatrix4fv(locations.uniforms.mvp, false, mvpMatrix);
+
+                gl.uniformMatrix3fv(locations.uniforms.mvn, false, normalMatrix);
+                if (locations.uniforms.color) {
+                    gl.uniform3fv(locations.uniforms.color, color);
+                }
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+                gl.vertexAttribPointer(locations.attributes.position, 3, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(locations.attributes.position);
+                
+                if (locations.attributes.normal !== undefined) {
+                    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
+
+                    gl.vertexAttribPointer(locations.attributes.normal, 3, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(locations.attributes.normal);
+                }
+
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
+                gl.drawElements(gl.TRIANGLES, buffers.index.length, gl.UNSIGNED_SHORT, 0);
+            }
+
+            // buttons
+            Object.keys(cameraModes).forEach(mode => {
+                const button = document.getElementById(mode);
+                if (button) {
+                    button.addEventListener('click', () => {
+                        cameraState.mode = mode;
+                        cameraState.target = {...cameraState.current};
+                        cameraState.transition = 0;
+                    });
+                }
+            });
+
+            // render loop
+            function render() {
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                gl.clearColor(0.0, 0.0, 0.1, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+                const time = Date.now() * 0.001;
+                const moonAngle = time * 0.5;
+                // compute moon position
+                const moonDist = 3;
+                // const moonDist = 6;
+
+                const moonPosition = vec3.fromValues(
+                    moonDist * Math.sin(moonAngle),
+                    0,
+                    moonDist * Math.cos(moonAngle)
+                );
+
+                // compute light position (sun)
+                const lightAngle = time * 0.6;
+                const lightPosition = vec3.fromValues(
+                    30 * Math.sin(lightAngle),
+                    5,
+                    30 * Math.cos(lightAngle)
+                );
+
+                // view matrix from camera system
+                const viewMatrix = updateCamera(moonPosition);
+                const projMatrix = mat4.perspective(
+                    mat4.create(),
+                    Math.PI/3,
+
+                    canvas.width/canvas.height,
+                    .1,
+                    100
+                );
+
+                let modelMatrix = mat4.create();
+                mat4.rotateY(modelMatrix, modelMatrix, time * 0.1); 
+                drawEarthAndAtmosphere(gl, mainProgram, atmosphereProgram, mainLocations, atmosphereLocations, 
+                                     buffers, viewMatrix, projMatrix, modelMatrix, lightPosition);
+
+                modelMatrix = mat4.create();
+                mat4.translate(modelMatrix, modelMatrix, moonPosition);
+                mat4.scale(modelMatrix, modelMatrix, [0.27, 0.27, 0.27]);
+
+                drawMoon(gl, mainProgram, mainLocations, buffers, viewMatrix, projMatrix, modelMatrix, lightPosition);
+
+                requestAnimationFrame(render);
+            }
+
+            render();
+        }
+
+        // helpers
+        function createProgram(gl, vertexShaderId, fragmentShaderId) {
+            const vertexShader = createShader(gl, vertexShaderId, gl.VERTEX_SHADER);
+            const fragmentShader = createShader(gl, fragmentShaderId, gl.FRAGMENT_SHADER);
+
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                throw new Error(gl.getProgramInfoLog(program));
+            }
+
+            return program;
+        }
+
+        function createShader(gl, shaderId, type) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, document.getElementById(shaderId).text);
+            gl.compileShader(shader);
+
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                throw new Error(gl.getShaderInfoLog(shader));
+            }
+
+            return shader;
+        }
+
+        function createBuffer(gl, data, target = gl.ARRAY_BUFFER) {
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(target, buffer);
+            const arrayType = target === gl.ARRAY_BUFFER ? Float32Array : Uint16Array;
+            gl.bufferData(target, new arrayType(data), gl.STATIC_DRAW);
+            buffer.length = data.length;
+            return buffer;
+        }
+
+        function createSphere(subdivisions) {
+            const positions = [];
+            const normals = [];
+            const indices = [];
+            
+            // wikipedia has a good explanation of how to generate a sphere
+            for (let lat = 0; lat <= subdivisions; lat++) {
+                const theta = lat * Math.PI / subdivisions;
+                const sinTheta = Math.sin(theta);
+                const cosTheta = Math.cos(theta);
+                
+                for (let lon = 0; lon <= subdivisions; lon++) {
+                    const phi = lon * 2 * Math.PI / subdivisions;
+                    const sinPhi = Math.sin(phi);
+                    const cosPhi = Math.cos(phi);
+                    
+                    const x = cosPhi * sinTheta;
+                    const y = cosTheta;
+                    const z = sinPhi * sinTheta;
+                    
+                    positions.push(x, y, z);
+                    normals.push(x, y, z);
+                }
+            }
+            
+            for (let lat = 0; lat < subdivisions; lat++) {
+                for (let lon = 0; lon < subdivisions; lon++) {
+                    const first = lat * (subdivisions + 1) + lon;
+                    const second = first + subdivisions + 1;
+                    
+                    indices.push(first, second, first + 1);
+                    indices.push(second, second + 1, first + 1);
+                }
+            }
+            
+            return { positions, normals, indices };
+        }
+
+        window.onload = start;
+    </script>
+</body>
+</html>

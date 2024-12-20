@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>City FlyOver</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            margin: 10px;
+            background-color: #000;
+        }
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #controls {
+            margin-bottom: 10px;
+        }
+    </style>
+    <!-- Include the glMatrix library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+</head>
+<body>
+    <h1>City FlyOver</h1>
+    <div id="controls">
+        <label for="slider1">Camera Position (t):</label>
+        <input type="range" id="slider1" min="0" max="100" value="0" step="1">
+    </div>
+    <canvas id="observerCanvas" width="400" height="400"></canvas>
+    <canvas id="cameraCanvas" width="400" height="400"></canvas>
+    <script>
+        function setup() {
+            var observerCanvas = document.getElementById('observerCanvas');
+            var cameraCanvas = document.getElementById('cameraCanvas');
+            var observerContext = observerCanvas.getContext('2d');
+            var cameraContext = cameraCanvas.getContext('2d');
+            var slider1 = document.getElementById('slider1');
+
+            var buildingColors = [];
+            for (var i = 0; i < 8; i++) {
+                var hue = Math.random() * 360;
+                var saturation = 10 + Math.random() * 10;
+                var lightness = 20 + Math.random() * 10;
+                var color = 'hsl(' + hue + ', ' + saturation + '%, ' + lightness + '%)';
+                buildingColors.push(color);
+            }
+
+            var citySize = 5;
+            var roadSpacing = 100;
+            var roadVariation = 20;
+            var roadWidth = 12;
+            var buildingMargin = 20;
+
+            var roadPositionsX = [];
+            var roadPositionsZ = [];
+            for (var i = -citySize; i <= citySize; i++) {
+                var x = i * roadSpacing + (Math.random() - 0.5) * roadVariation;
+                roadPositionsX.push(x);
+                var z = i * roadSpacing + (Math.random() - 0.5) * roadVariation;
+                roadPositionsZ.push(z);
+            }
+
+            var roads = [];
+            for (var i = 0; i < roadPositionsX.length; i++) {
+                roads.push({
+                    start: [roadPositionsX[i], 0, roadPositionsZ[0]],
+                    end: [roadPositionsX[i], 0, roadPositionsZ[roadPositionsZ.length - 1]],
+                    orientation: 'vertical'
+                });
+            }
+            for (var i = 0; i < roadPositionsZ.length; i++) {
+                roads.push({
+                    start: [roadPositionsX[0], 0, roadPositionsZ[i]],
+                    end: [roadPositionsX[roadPositionsX.length - 1], 0, roadPositionsZ[i]],
+                    orientation: 'horizontal'
+                });
+            }
+
+            var buildings = [];
+            for (var i = 0; i < roadPositionsX.length - 1; i++) {
+                for (var j = 0; j < roadPositionsZ.length - 1; j++) {
+                    if (Math.random() > 0.2) {
+                        var xMin = Math.min(roadPositionsX[i], roadPositionsX[i + 1]) + roadWidth / 2 + buildingMargin;
+                        var xMax = Math.max(roadPositionsX[i], roadPositionsX[i + 1]) - roadWidth / 2 - buildingMargin;
+                        var zMin = Math.min(roadPositionsZ[j], roadPositionsZ[j + 1]) + roadWidth / 2 + buildingMargin;
+                        var zMax = Math.max(roadPositionsZ[j], roadPositionsZ[j + 1]) - roadWidth / 2 - buildingMargin;
+
+                        if (xMax - xMin > 30 && zMax - zMin > 30) {
+                            var x = xMin + (xMax - xMin) * Math.random();
+                            var z = zMin + (zMax - zMin) * Math.random();
+                            var height = Math.random() * 80 + 40;
+                            var windows = generateWindows(height);
+                            var color = buildingColors[Math.floor(Math.random() * buildingColors.length)];
+                            buildings.push({
+                                type: 'building',
+                                position: [x, 0, z],
+                                scale: [Math.random() * 30 + 30, height, Math.random() * 30 + 30],
+                                rotation: 0,
+                                windows: windows,
+                                color: color
+                            });
+                        }
+                    }
+                }
+            }
+
+            function generateWindows(height) {
+                var windowRows = Math.floor(height / 30);
+                var windowCols = 2;
+                var sides = ['front', 'back', 'left', 'right'];
+                var windows = {};
+                for (var side of sides) {
+                    windows[side] = [];
+                    for (var row = 0; row < windowRows; row++) {
+                        for (var col = 0; col < windowCols; col++) {
+                            if (Math.random() > 0.7) continue;
+                            windows[side].push({ row: row, col: col });
+                        }
+                    }
+                }
+                return windows;
+            }
+
+            var cars = [];
+            for (var i = 0; i < roads.length; i++) {
+                var road = roads[i];
+                for (var j = 0; j < 3; j++) {
+                    var speed = (Math.random() * 0.001 + 0.02);
+                    cars.push({
+                        type: 'car',
+                        road: road,
+                        position: Math.random(),
+                        speed: speed,
+                        color: 'hsl(' + Math.random() * 360 + ', 100%, 60%)',
+                        size: 16,
+                        wheelAngle: 0
+                    });
+                }
+            }
+
+            function draw() {
+
+                observerContext.clearRect(0, 0, observerCanvas.width, observerCanvas.height);
+                cameraContext.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
+
+                var tParam = slider1.value * 0.01;
+
+                var context;
+
+                function moveToTx(loc, Tx) {
+                    var res = vec3.create();
+                    vec3.transformMat4(res, loc, Tx);
+                    context.moveTo(res[0], res[1]);
+                }
+
+                function lineToTx(loc, Tx) {
+                    var res = vec3.create();
+                    vec3.transformMat4(res, loc, Tx);
+                    context.lineTo(res[0], res[1]);
+                }
+
+                function drawBuilding(TxU, scale, windows, color) {
+                    var Tx = mat4.clone(TxU);
+                    mat4.scale(Tx, Tx, [scale[0], scale[1], scale[2]]);
+
+                    context.fillStyle = color;
+                    context.strokeStyle = "#000";
+                    context.lineWidth = 0.5;
+
+                    var faces = [
+                        { normal: [0, 0, 1], vertices: [[-0.5, -0.5, 0.5], [0.5, -0.5, 0.5], [0.5, 0.5, 0.5], [-0.5, 0.5, 0.5]], side: 'front' },
+                        { normal: [0, 0, -1], vertices: [[-0.5, -0.5, -0.5], [-0.5, 0.5, -0.5], [0.5, 0.5, -0.5], [0.5, -0.5, -0.5]], side: 'back' },
+                        { normal: [-1, 0, 0], vertices: [[-0.5, -0.5, -0.5], [-0.5, -0.5, 0.5], [-0.5, 0.5, 0.5], [-0.5, 0.5, -0.5]], side: 'left' },
+                        { normal: [1, 0, 0], vertices: [[0.5, -0.5, -0.5], [0.5, 0.5, -0.5], [0.5, 0.5, 0.5], [0.5, -0.5, 0.5]], side: 'right' },
+                        { normal: [0, 1, 0], vertices: [[-0.5, 0.5, -0.5], [-0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, -0.5]], side: 'top' },
+                        { normal: [0, -1, 0], vertices: [[-0.5, -0.5, -0.5], [0.5, -0.5, -0.5], [0.5, -0.5, 0.5], [-0.5, -0.5, 0.5]], side: 'bottom' },
+                    ];
+
+                    for (var i = 0; i < faces.length; i++) {
+                        var face = faces[i];
+
+                        var faceNormal = vec3.fromValues(...face.normal);
+                        var normalTransformed = vec3.create();
+                        var normalMatrix = mat3.create();
+                        mat3.normalFromMat4(normalMatrix, Tx);
+                        vec3.transformMat3(normalTransformed, faceNormal, normalMatrix);
+
+                        if (normalTransformed[2] >= 0) continue;
+
+                        context.fillStyle = color;
+                        context.beginPath();
+                        moveToTx(face.vertices[0], Tx);
+                        for (var j = 1; j < face.vertices.length; j++) {
+                            lineToTx(face.vertices[j], Tx);
+                        }
+                        context.closePath();
+                        context.fill();
+                        context.stroke();
+
+                        if (['front', 'back', 'left', 'right'].includes(face.side)) {
+                            var previousFillStyle = context.fillStyle;
+                            context.fillStyle = "#FFD700";
+                            var windowData = windows[face.side];
+                            var windowRows = Math.floor(scale[1] / 30);
+                            var windowCols = 2;
+
+                            for (var w = 0; w < windowData.length; w++) {
+                                var row = windowData[w].row;
+                                var col = windowData[w].col;
+
+                                var windowWidth = 1 / windowCols * 0.2;
+                                var windowHeight = 1 / windowRows * 0.2;
+                                var x = -0.5 + (col + 0.5) * (1 / windowCols);
+                                var y = -0.5 + (row + 0.5) * (1 / windowRows);
+
+                                context.beginPath();
+                                moveToTx([x - windowWidth / 2, y - windowHeight / 2, 0.51 * face.normal[2]], Tx);
+                                lineToTx([x + windowWidth / 2, y - windowHeight / 2, 0.51 * face.normal[2]], Tx);
+                                lineToTx([x + windowWidth / 2, y + windowHeight / 2, 0.51 * face.normal[2]], Tx);
+                                lineToTx([x - windowWidth / 2, y + windowHeight / 2, 0.51 * face.normal[2]], Tx);
+                                context.closePath();
+                                context.fill();
+                            }
+                            context.fillStyle = previousFillStyle;
+                        }
+                    }
+                }
+
+                function drawPlane(TxU, scale) {
+                    var Tx = mat4.clone(TxU);
+                    mat4.scale(Tx, Tx, [scale, scale, scale]);
+                    context.fillStyle = "white";
+                    context.strokeStyle = "black";
+                    context.lineWidth = 0.5;
+
+                    var vertices = [
+                        [0, 0.1, -1],
+                        [0.5, 0, 0],
+                        [0, -0.1, -1],
+                        [-0.5, 0, 0],
+                        [0, 0, 1],
+                        [0, 0.2, 0.8]
+                    ];
+
+                    context.beginPath();
+                    moveToTx(vertices[0], Tx);
+                    lineToTx(vertices[1], Tx);
+                    lineToTx(vertices[4], Tx);
+                    lineToTx(vertices[3], Tx);
+                    context.closePath();
+                    context.fill();
+                    context.stroke();
+
+                    context.beginPath();
+                    moveToTx(vertices[2], Tx);
+                    lineToTx(vertices[3], Tx);
+                    lineToTx(vertices[4], Tx);
+                    lineToTx(vertices[1], Tx);
+                    context.closePath();
+                    context.fill();
+                    context.stroke();
+
+                    context.beginPath();
+                    moveToTx(vertices[4], Tx);
+                    lineToTx(vertices[5], Tx);
+                    lineToTx(vertices[0], Tx);
+                    context.closePath();
+                    context.fill();
+                    context.stroke();
+                }
+
+                function drawCar(TxU, size, color, wheelAngle) {
+                    var Tx = mat4.clone(TxU);
+                    mat4.scale(Tx, Tx, [size, size, size]);
+                    context.fillStyle = color;
+                    context.strokeStyle = "black";
+                    context.lineWidth = 0.5;
+
+                    context.beginPath();
+                    moveToTx([-0.5, -0.25, 0.25], Tx);
+                    lineToTx([0.5, -0.25, 0.25], Tx);
+                    lineToTx([0.5, -0.25, -0.25], Tx);
+                    lineToTx([-0.5, -0.25, -0.25], Tx);
+                    context.closePath();
+                    context.fill();
+                    context.stroke();
+
+                    context.beginPath();
+                    moveToTx([-0.3, -0.1, 0.15], Tx);
+                    lineToTx([0.3, -0.1, 0.15], Tx);
+                    lineToTx([0.3, -0.1, -0.15], Tx);
+                    lineToTx([-0.3, -0.1, -0.15], Tx);
+                    context.closePath();
+                    context.fill();
+                    context.stroke();
+
+                    var wheelPositions = [
+                        [-0.4, -0.3, 0.25],
+                        [0.4, -0.3, 0.25],
+                        [-0.4, -0.3, -0.25],
+                        [0.4, -0.3, -0.25]
+                    ];
+
+                    for (var i = 0; i < wheelPositions.length; i++) {
+                        var wheelTx = mat4.clone(Tx);
+                        mat4.translate(wheelTx, wheelTx, wheelPositions[i]);
+                        mat4.rotateX(wheelTx, wheelTx, wheelAngle);
+
+                        context.fillStyle = "black";
+                        context.beginPath();
+                        moveToTx([-0.1, -0.05, -0.05], wheelTx);
+                        lineToTx([0.1, -0.05, -0.05], wheelTx);
+                        lineToTx([0.1, 0.05, -0.05], wheelTx);
+                        lineToTx([-0.1, 0.05, -0.05], wheelTx);
+                        context.closePath();
+                        context.fill();
+                        context.stroke();
+
+                        context.beginPath();
+                        moveToTx([-0.1, -0.05, 0.05], wheelTx);
+                        lineToTx([0.1, -0.05, 0.05], wheelTx);
+                        lineToTx([0.1, 0.05, 0.05], wheelTx);
+                        lineToTx([-0.1, 0.05, 0.05], wheelTx);
+                        context.closePath();
+                        context.fill();
+                        context.stroke();
+
+                        context.beginPath();
+                        moveToTx([-0.1, -0.05, -0.05], wheelTx);
+                        lineToTx([-0.1, -0.05, 0.05], wheelTx);
+                        lineToTx([-0.1, 0.05, 0.05], wheelTx);
+                        lineToTx([-0.1, 0.05, -0.05], wheelTx);
+                        context.closePath();
+                        context.fill();
+                        context.stroke();
+
+                        context.beginPath();
+                        moveToTx([0.1, -0.05, -0.05], wheelTx);
+                        lineToTx([0.1, -0.05, 0.05], wheelTx);
+                        lineToTx([0.1, 0.05, 0.05], wheelTx);
+                        lineToTx([0.1, 0.05, -0.05], wheelTx);
+                        context.closePath();
+                        context.fill();
+                        context.stroke();
+                    }
+                }
+
+                function drawRoads(TxU) {
+                    for (var i = 0; i < roads.length; i++) {
+                        var road = roads[i];
+
+                        context.strokeStyle = "#444";
+                        context.lineWidth = roadWidth;
+                        context.beginPath();
+                        moveToTx([road.start[0], 0.01, road.start[2]], TxU);
+                        lineToTx([road.end[0], 0.01, road.end[2]], TxU);
+                        context.stroke();
+
+                        context.strokeStyle = "#fff";
+                        context.lineWidth = 1;
+                        var dashLength = 10;
+                        var gapLength = 10;
+                        var roadLength = vec3.distance(vec3.fromValues(...road.start), vec3.fromValues(...road.end));
+                        var numDashes = Math.floor(roadLength / (dashLength + gapLength));
+                        var startVec = vec3.fromValues(...road.start);
+                        var endVec = vec3.fromValues(...road.end);
+                        var directionVec = vec3.create();
+                        vec3.subtract(directionVec, endVec, startVec);
+                        vec3.normalize(directionVec, directionVec);
+                        var currentPos = vec3.clone(startVec);
+
+                        for (var j = 0; j < numDashes; j++) {
+                            var dashStart = vec3.clone(currentPos);
+                            var dashEnd = vec3.create();
+                            vec3.scaleAndAdd(dashEnd, dashStart, directionVec, dashLength);
+
+                            context.beginPath();
+                            moveToTx([dashStart[0], 0.02, dashStart[2]], TxU);
+                            lineToTx([dashEnd[0], 0.02, dashEnd[2]], TxU);
+                            context.stroke();
+
+                            vec3.scaleAndAdd(currentPos, dashEnd, directionVec, gapLength);
+                        }
+                    }
+                }
+
+                function CameraCurve(t) {
+                    var R = 700.0;
+                    var h = 500.0;
+                    var angle = 2 * Math.PI * t;
+                    var eye = vec3.create();
+                    eye[0] = R * Math.cos(angle);
+                    eye[1] = h;
+                    eye[2] = R * Math.sin(angle);
+                    return eye;
+                }
+
+                var eyeCamera = CameraCurve(tParam);
+                var targetCamera = vec3.fromValues(0, 0, 0);
+                var upCamera = vec3.fromValues(0, 1, 0);
+                var TlookAtCamera = mat4.create();
+                mat4.lookAt(TlookAtCamera, eyeCamera, targetCamera, upCamera);
+
+                var eyeObserver = vec3.fromValues(1200, 800, 1200);
+                var targetObserver = vec3.fromValues(0, 0, 0);
+                var upObserver = vec3.fromValues(0, 1, 0);
+                var TlookAtObserver = mat4.create();
+                mat4.lookAt(TlookAtObserver, eyeObserver, targetObserver, upObserver);
+
+                var Tviewport = mat4.create();
+                mat4.fromTranslation(Tviewport, [200, 200, 0]);
+                mat4.scale(Tviewport, Tviewport, [100, -100, 1]);
+
+                var TprojectionCamera = mat4.create();
+                mat4.perspective(TprojectionCamera, Math.PI / 4, 1, 10, 3000);
+
+                var TprojectionObserver = mat4.create();
+                mat4.perspective(TprojectionObserver, Math.PI / 4, 1, 10, 3000);
+
+                var tVP_PROJ_VIEW_Camera = mat4.create();
+                mat4.multiply(tVP_PROJ_VIEW_Camera, Tviewport, TprojectionCamera);
+                mat4.multiply(tVP_PROJ_VIEW_Camera, tVP_PROJ_VIEW_Camera, TlookAtCamera);
+
+                var tVP_PROJ_VIEW_Observer = mat4.create();
+                mat4.multiply(tVP_PROJ_VIEW_Observer, Tviewport, TprojectionObserver);
+                mat4.multiply(tVP_PROJ_VIEW_Observer, tVP_PROJ_VIEW_Observer, TlookAtObserver);
+
+                for (var i = 0; i < cars.length; i++) {
+                    var car = cars[i];
+                    car.position = (car.position + car.speed) % 1;
+                    var x = (1 - car.position) * car.road.start[0] + car.position * car.road.end[0];
+                    var z = (1 - car.position) * car.road.start[2] + car.position * car.road.end[2];
+                    car.positionVec = [x, 0.5, z];
+                    car.wheelAngle += car.speed * 1000;
+                }
+
+                var drawables = buildings.concat(cars);
+
+                var planeDrawable = {
+                    type: 'plane',
+                    position: eyeCamera,
+                    rotation: 0,
+                    scale: [60, 60, 60]
+                };
+                drawables.push(planeDrawable);
+
+                function sortDrawables(drawables, eye) {
+                    drawables.sort(function(a, b) {
+                        var posA = a.type === 'car' ? a.positionVec : a.position;
+                        var posB = b.type === 'car' ? b.positionVec : b.position;
+                        var dzA = vec3.distance(posA, eye);
+                        var dzB = vec3.distance(posB, eye);
+                        return dzB - dzA;
+                    });
+                }
+
+                context = cameraContext;
+
+                drawRoads(tVP_PROJ_VIEW_Camera);
+
+                sortDrawables(drawables, eyeCamera);
+
+                for (var i = 0; i < drawables.length; i++) {
+                    var drawable = drawables[i];
+                    if (drawable.type === 'building') {
+                        var Tmodel = mat4.create();
+                        mat4.translate(Tmodel, Tmodel, drawable.position);
+                        mat4.rotateY(Tmodel, Tmodel, drawable.rotation);
+                        var Tx = mat4.create();
+                        mat4.multiply(Tx, tVP_PROJ_VIEW_Camera, Tmodel);
+                        drawBuilding(Tx, drawable.scale, drawable.windows, drawable.color);
+                    } else if (drawable.type === 'car') {
+                        var car = drawable;
+                        var x = car.positionVec[0];
+                        var z = car.positionVec[2];
+                        var angle = Math.atan2(car.road.end[2] - car.road.start[2], car.road.end[0] - car.road.start[0]);
+                        var Tcar = mat4.create();
+                        mat4.translate(Tcar, Tcar, [x, 0.5, z]);
+                        mat4.rotateY(Tcar, Tcar, -angle);
+                        var TxCar = mat4.create();
+                        mat4.multiply(TxCar, tVP_PROJ_VIEW_Camera, Tcar);
+                        drawCar(TxCar, car.size, car.color, car.wheelAngle);
+                    } else if (drawable.type === 'plane') {
+                        var Tplane = mat4.create();
+                        mat4.translate(Tplane, Tplane, drawable.position);
+                        var cameraDirection = vec3.create();
+                        vec3.subtract(cameraDirection, targetCamera, eyeCamera);
+                        var planeAngle = Math.atan2(cameraDirection[0], cameraDirection[2]);
+                        mat4.rotateY(Tplane, Tplane, planeAngle);
+                        mat4.rotateX(Tplane, Tplane, -Math.PI / 2);
+                        mat4.scale(Tplane, Tplane, drawable.scale);
+                        var TxPlane = mat4.create();
+                        mat4.multiply(TxPlane, tVP_PROJ_VIEW_Camera, Tplane);
+                        drawPlane(TxPlane, 1);
+                    }
+                }
+
+                context = observerContext;
+
+                drawRoads(tVP_PROJ_VIEW_Observer);
+
+                sortDrawables(drawables, eyeObserver);
+
+                for (var i = 0; i < drawables.length; i++) {
+                    var drawable = drawables[i];
+                    if (drawable.type === 'building') {
+                        var Tmodel = mat4.create();
+                        mat4.translate(Tmodel, Tmodel, drawable.position);
+                        mat4.rotateY(Tmodel, Tmodel, drawable.rotation);
+                        var Tx = mat4.create();
+                        mat4.multiply(Tx, tVP_PROJ_VIEW_Observer, Tmodel);
+                        drawBuilding(Tx, drawable.scale, drawable.windows, drawable.color);
+                    } else if (drawable.type === 'car') {
+                        var car = drawable;
+                        var x = car.positionVec[0];
+                        var z = car.positionVec[2];
+                        var angle = Math.atan2(car.road.end[2] - car.road.start[2], car.road.end[0] - car.road.start[0]);
+                        var Tcar = mat4.create();
+                        mat4.translate(Tcar, Tcar, [x, 0.5, z]);
+                        mat4.rotateY(Tcar, Tcar, -angle);
+                        var TxCar = mat4.create();
+                        mat4.multiply(TxCar, tVP_PROJ_VIEW_Observer, Tcar);
+                        drawCar(TxCar, car.size, car.color, car.wheelAngle);
+                    } else if (drawable.type === 'plane') {
+                        var Tplane = mat4.create();
+                        mat4.translate(Tplane, Tplane, drawable.position);
+                        var cameraDirection = vec3.create();
+                        vec3.subtract(cameraDirection, targetCamera, eyeCamera);
+                        var planeAngle = Math.atan2(cameraDirection[0], cameraDirection[2]);
+                        mat4.rotateY(Tplane, Tplane, planeAngle);
+                        mat4.rotateX(Tplane, Tplane, -Math.PI / 2);
+                        mat4.scale(Tplane, Tplane, drawable.scale);
+                        var TxPlane = mat4.create();
+                        mat4.multiply(TxPlane, tVP_PROJ_VIEW_Observer, Tplane);
+                        drawPlane(TxPlane, 1);
+                    }
+                }
+            }
+
+            function animate() {
+                draw();
+                requestAnimationFrame(animate);
+            }
+
+            slider1.addEventListener("input", draw);
+            animate();
+        }
+        window.onload = setup;
+    </script>
+</body>
+</html>

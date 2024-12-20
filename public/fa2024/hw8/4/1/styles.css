@@ -1,0 +1,104 @@
+/* General Reset */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #1e1e1e; /* Dark background for contrast */
+    color: #f0f0f0; /* Light text for readability */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  
+  /* Canvas Styling */
+  canvas {
+    border: 2px solid #444;
+    margin: 20px 0;
+    background-color: #000; /* Black canvas background for 3D visuals */
+  }
+  
+  /* Text Section */
+  p {
+    max-width: 800px;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+    color: #ddd;
+  }
+  
+  /* Labels and Inputs */
+  label {
+    margin-right: 10px;
+    font-weight: bold;
+    color: #aaa;
+  }
+  
+  input[type="range"] {
+    width: 300px;
+    margin: 5px 0;
+  }
+  
+  select {
+    background-color: #333;
+    color: #f0f0f0;
+    border: 1px solid #444;
+    padding: 0px;
+    border-radius: 4px;
+  }
+  
+  /* Dropdown Styling */
+  #textureDropdown {
+    margin-left: 10px;
+  }
+  
+  /* Button Hover States */
+  input[type="range"]:hover,
+  select:hover {
+    cursor: pointer;
+    border-color: #888;
+  }
+  
+  /* Page Structure */
+  body > script {
+    display: none; /* Hides script tags from being visible in some browsers */
+  }
+  
+  /* Flexbox Container for Controls */
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0px;
+    margin-bottom: 0px;
+  }
+  
+  /* Specific Slider Styling */
+  #slider1, #slider2, #slider3 {
+    -webkit-appearance: none; /* Removes default styling */
+    height: 5px;
+    background: #444;
+    outline: none;
+    border-radius: 5px;
+  }
+  
+  #slider1::-webkit-slider-thumb,
+  #slider2::-webkit-slider-thumb,
+  #slider3::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #888;
+    cursor: pointer;
+  }
+  
+  #slider1::-webkit-slider-thumb:hover,
+  #slider2::-webkit-slider-thumb:hover,
+  #slider3::-webkit-slider-thumb:hover {
+    background: #f0f0f0;
+  }
+  
