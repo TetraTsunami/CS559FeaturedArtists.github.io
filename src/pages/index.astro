@@ -2,6 +2,7 @@
 import Homework from "../components/Homework.astro";
 import Layout from "../layouts/Layout.astro";
 import fall2023 from "./fa2023.json";
+import fall2024 from "./fa2024.json";
 type Homework = {
   number: number;
   sample4: { title: string; link: string }[];
@@ -26,7 +27,7 @@ type Homework = {
         Fall 2024
       </h2>
       {
-        (fall2023 as Homework[]).map((homework) => (
+        (fall2024 as Homework[]).map((homework) => (
           <Homework homework={homework} />
         ))
       }

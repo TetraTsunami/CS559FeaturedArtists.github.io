@@ -1,0 +1,190 @@
+[
+  {
+    "number": 4,
+    "sample3": [
+      {
+        "link": "fa2024/hw4/3/1/assignment_4.html",
+        "title": "Dot Along Path"
+      },
+      {
+        "link": "fa2024/hw4/3/2/hw_04.html",
+        "title": "Helicopter Racetrack"
+      },
+      {
+        "link": "fa2024/hw4/3/3/hw4.html",
+        "title": "Custom Racetrack"
+      },
+      {
+        "link": "fa2024/hw4/3/4/hw4.html",
+        "title": "Moving Along Curves"
+      },
+      {
+        "link": "fa2024/hw4/3/5/hw4.html",
+        "title": "Car Racetrack"
+      }
+    ],
+    "sample4": [
+      {
+        "link": "fa2024/hw4/4/1/index.html",
+        "title": "Solar System"
+      },
+      {
+        "link": "fa2024/hw4/4/2/asgmt4.html",
+        "title": "Circuit De Barcelona Simulator"
+      },
+      {
+        "link": "fa2024/hw4/4/3/assignment-4.html",
+        "title": "Red Meteor"
+      },
+      {
+        "link": "fa2024/hw4/4/4/hw6_2.html",
+        "title": "Birds Between Trees"
+      },
+      {
+        "link": "fa2024/hw4/4/5/project.html",
+        "title": "Farosh"
+      }
+    ]
+  },
+  {
+    "number": 3,
+    "sample3": [
+      {
+        "link": "fa2024/hw3/3/1/A3.html",
+        "title": "Fishing"
+      },
+      {
+        "link": "fa2024/hw3/3/2/hw3.html",
+        "title": "Windmill"
+      },
+      {
+        "link": "fa2024/hw3/3/3/car.html",
+        "title": "Beep Beep"
+      },
+      {
+        "link": "fa2024/hw3/3/4/assignment3.html",
+        "title": "Cartoon Man"
+      },
+      {
+        "link": "fa2024/hw3/3/5/solar.html",
+        "title": "Solar System"
+      }
+    ],
+    "sample4": [
+      {
+        "link": "fa2024/hw3/4/1/p3.html",
+        "title": "3D L-System Trees"
+      },
+      {
+        "link": "fa2024/hw3/4/2/duck.html",
+        "title": "Swimming Duck"
+      },
+      {
+        "link": "fa2024/hw3/4/3/index.html",
+        "title": "Boids"
+      },
+      {
+        "link": "fa2024/hw3/4/4/Project3.html",
+        "title": "Creepy Swing"
+      },
+      {
+        "link": "fa2024/hw3/4/5/MatrixMovement.html",
+        "title": "Stormy Paddleboat"
+      }
+    ]
+  },
+  {
+    "number": 2,
+    "sample3": [
+      {
+        "link": "fa2024/hw2/3/1/PA2.html",
+        "title": "Solar System"
+      },
+      {
+        "link": "fa2024/hw2/3/2/demo.html",
+        "title": "Clock"
+      },
+      {
+        "link": "fa2024/hw2/3/3/orbits.html",
+        "title": "Orbits"
+      },
+      {
+        "link": "fa2024/hw2/3/4/P2.html",
+        "title": "Flamethrower"
+      },
+      {
+        "link": "fa2024/hw2/3/5/p2.html",
+        "title": "Turbine Scene"
+      }
+    ],
+    "sample4": [
+      {
+        "link": "fa2024/hw2/4/1/index.html",
+        "title": "Guns n' Roses"
+      },
+      {
+        "link": "fa2024/hw2/4/2/hw2.html",
+        "title": "Running Buster"
+      },
+      {
+        "link": "fa2024/hw2/4/3/fieldscene.html",
+        "title": "Fieldscene"
+      },
+      {
+        "link": "fa2024/hw2/4/4/P2.html",
+        "title": "Stampede"
+      },
+      {
+        "link": "fa2024/hw2/4/5/p2.html",
+        "title": "Swaying Flowers"
+      }
+    ]
+  },
+  {
+    "number": 1,
+    "sample4": [
+      {
+        "link": "fa2024/hw1/4/1/index.html",
+        "title": "Tetrys"
+      },
+      {
+        "link": "fa2024/hw1/4/2/hw1.html",
+        "title": "Circle of Triangles"
+      },
+      {
+        "link": "fa2024/hw1/4/3/demo.html",
+        "title": "Flappy Bird"
+      },
+      {
+        "link": "fa2024/hw1/4/4/demo.html",
+        "title": "Snake AI"
+      },
+      {
+        "link": "fa2024/hw1/4/5/sonic.html",
+        "title": "Sonic Demo"
+      }
+    ],
+    "sample3": [
+      {
+        "link": "fa2024/hw1/3/1/a1.html",
+        "title": "Pet Rock"
+      },
+      {
+        "link": "fa2024/hw1/3/2/p1.html",
+        "title": "Swinging Sword"
+      },
+      {
+        "link": "fa2024/hw1/3/3/p1.html",
+        "title": "Shapes (1)"
+      },
+      {
+        "link": "fa2024/hw1/3/4/project1.html",
+        "title": "Pinnochio"
+      },
+      {
+        "link": "fa2024/hw1/3/5/demo.html",
+        "title": "Shapes (2)"
+      }
+    ]
+  }
+]
