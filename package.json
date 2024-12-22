@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@astrojs/tailwind": "^5.1.3",
+    "@fontsource-variable/domine": "^5.1.0",
     "astro": "^5.1.0",
     "sharp": "^0.33.5",
     "tailwindcss": "^3.4.17"

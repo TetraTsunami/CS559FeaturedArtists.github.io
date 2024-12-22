@@ -5,8 +5,8 @@ import headerGI from "../assets/header-gi.png";
 import headerModel from "../assets/header-model.png";
 import Homework from "../components/Homework.astro";
 import Layout from "../layouts/Layout.astro";
-import fall2023 from "./fa2023.json";
-import fall2024 from "./fa2024.json";
+import fall2023 from "../fa2023.json";
+import fall2024 from "../fa2024.json";
 type Homework = {
   number: number;
   sample4: { title: string; link: string }[];
@@ -15,7 +15,7 @@ type Homework = {
 ---
 
 <Layout>
-  <div class="absolute left-0 top-0 flex h-96 w-full items-start justify-around overflow-hidden px-1 pt-1 opacity-30">
+  <div class="absolute left-0 top-0 flex h-96 w-full items-start justify-around overflow-hidden bg-[#fff5ea] px-4 pt-4 opacity-20">
     <Image
       src={headerGI}
       alt="GI"
@@ -30,7 +30,7 @@ type Homework = {
     class="shadow-md"
     style={{
         width: "min(60%, 360px)",
-        marginTop: "10rem",
+        marginTop: "8rem",
         marginLeft: "-8rem",
       }}
     />
@@ -51,11 +51,11 @@ type Homework = {
   </div>
   
   <p class="text-center italic">Comp Sci 559 Computer Graphics course @ UW Madison</p>
-  <p>
-    This page links to some interesting homework submissions that either
-    received a score <span class="rounded-md border border-black px-1"
+  <p class="text-center">
+    This page links to some interesting submissions that
+    received a score of either <span class="rounded-md border border-black px-1"
     >4/4</span
-    > or a <span class="rounded-md border border-black px-1">3/4</span> in the
+    > or <span class="rounded-md border border-black px-1">3/4</span> in the
     homework assignments.</p>
 
     <div
