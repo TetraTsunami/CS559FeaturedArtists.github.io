@@ -1,4 +1,8 @@
 ---
+import { Image } from "astro:assets";
+import headerColor from "../assets/header-color.png";
+import headerGI from "../assets/header-gi.png";
+import headerModel from "../assets/header-model.png";
 import Homework from "../components/Homework.astro";
 import Layout from "../layouts/Layout.astro";
 import fall2023 from "./fa2023.json";
@@ -11,17 +15,51 @@ type Homework = {
 ---
 
 <Layout>
-  <div class="container m-auto min-h-[calc(100vh-96px)] py-8">
+  <div class="absolute left-0 top-0 flex h-96 w-full items-start justify-around overflow-hidden px-1 pt-1 opacity-30">
+    <Image
+      src={headerGI}
+      alt="GI"
+      class="shadow-md"
+      style={{
+        width: "min(50%, 300px)",
+      }}
+    />
+    <Image
+    src={headerModel}
+    alt="Model"
+    class="shadow-md"
+    style={{
+        width: "min(60%, 360px)",
+        marginTop: "10rem",
+        marginLeft: "-8rem",
+      }}
+    />
+    <Image
+      src={headerColor}
+      alt="Color"
+      class="shadow-md"
+      style={{
+        width: "min(40%, 260px)",
+        marginTop: "1rem",
+        marginLeft: "-4rem",
+      }}
+    />
+  </div>
+  <div class="container relative z-10 m-auto min-h-[calc(100vh-96px)] px-2 py-8">
+    <div class="flex h-96 w-full flex-col items-center justify-center">
     <h1 class="pb-16 text-center text-7xl font-bold">CS559 Featured Artists</h1>
-    <p class="italic">Comp Sci 559 Computer Graphics course @ UW Madison</p>
-    <p>
-      This page links to some interesting homework submissions that either
-      received a score <span class="rounded-md border border-black px-1"
-        >4/4</span
-      > or a <span class="rounded-md border border-black px-1">3/4</span> in the
-      homework assignments.
+  </div>
+  
+  <p class="text-center italic">Comp Sci 559 Computer Graphics course @ UW Madison</p>
+  <p>
+    This page links to some interesting homework submissions that either
+    received a score <span class="rounded-md border border-black px-1"
+    >4/4</span
+    > or a <span class="rounded-md border border-black px-1">3/4</span> in the
+    homework assignments.</p>
+
     <div
-      class="my-8 grid grid-cols-1 gap-4 rounded-xl bg-[#fff5ea]/50 p-4 shadow-lg sm:grid-cols-2 2xl:grid-cols-4"
+      class="my-8 grid grid-cols-1 gap-4 rounded-xl bg-[#fff5ea]/50 p-1 shadow-lg sm:grid-cols-2 md:p-4 2xl:grid-cols-4"
     >
       <h2 class="col-span-full mb-2 text-center text-3xl font-bold">
         Fall 2024
@@ -32,9 +70,9 @@ type Homework = {
         ))
       }
     </div>
-    </p>
+    
     <div
-      class="my-8 grid grid-cols-1 gap-4 rounded-xl bg-[#fff5ea]/50 p-4 shadow-lg sm:grid-cols-2 2xl:grid-cols-4"
+      class="my-8 grid grid-cols-1 gap-4 rounded-xl bg-[#fff5ea]/50 p-1 shadow-lg sm:grid-cols-2 md:p-4 2xl:grid-cols-4"
     >
       <h2 class="col-span-full mb-2 text-center text-3xl font-bold">
         Fall 2023
@@ -46,7 +84,7 @@ type Homework = {
       }
     </div>
   </div>
-	<div class="container mx-auto h-24 rounded-t-xl bg-[#fff5ea] p-4 text-center">
+	<div class="container mx-auto h-24 rounded-t-xl bg-[#fff5ea] p-1 text-center md:p-4">
 		<ul class="flex flex-row justify-center">
 				<li class="text-teal-700 underline"><a href="https://pages.cs.wisc.edu/~sifakis/">About the Instructor</a></li>
 		</ul>
