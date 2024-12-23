@@ -1,0 +1,21 @@
+---
+import Homework from "./Homework.astro";
+
+const { homeworks, header } = Astro.props as { homeworks: {
+  number: number;
+  sample4: { title: string; link: string }[];
+  sample3: { title: string; link: string }[];
+}[], header: string};
+---
+<div
+  class="my-8 grid grid-cols-1 gap-4 rounded-xl bg-[#fff5ea]/50 p-1 shadow-lg sm:grid-cols-2 md:p-4 2xl:grid-cols-4"
+>
+  <h2 class="col-span-full mb-2 text-center text-3xl font-bold">
+    {header}
+  </h2>
+  {
+    homeworks.map((e) => (
+      <Homework homework={e} />
+    ))
+  }
+</div>

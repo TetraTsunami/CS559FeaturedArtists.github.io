@@ -3,23 +3,25 @@ import { Image } from "astro:assets";
 import headerColor from "../assets/header-color.png";
 import headerGI from "../assets/header-gi.png";
 import headerModel from "../assets/header-model.png";
-import Homework from "../components/Homework.astro";
 import Layout from "../layouts/Layout.astro";
 import fall2023 from "../fa2023.json";
 import fall2024 from "../fa2024.json";
+import Semester from "../components/Semester.astro";
+
 type Homework = {
   number: number;
   sample4: { title: string; link: string }[];
   sample3: { title: string; link: string }[];
 };
+
 ---
 
 <Layout>
-  <div class="absolute left-0 top-0 flex h-96 w-full items-start justify-around overflow-hidden bg-[#fff5ea] px-4 pt-4 opacity-20">
+  <div class="absolute left-0 top-0 w-full overflow-hidden bg-[#fff5ea]">
+    <div class="flex h-96 w-full items-start justify-around px-4 pt-4 opacity-20">
     <Image
       src={headerGI}
       alt="GI"
-      class="shadow-md"
       style={{
         width: "min(50%, 300px)",
       }}
@@ -27,7 +29,6 @@ type Homework = {
     <Image
     src={headerModel}
     alt="Model"
-    class="shadow-md"
     style={{
         width: "min(60%, 360px)",
         marginTop: "8rem",
@@ -37,13 +38,14 @@ type Homework = {
     <Image
       src={headerColor}
       alt="Color"
-      class="shadow-md"
       style={{
         width: "min(40%, 260px)",
         marginTop: "1rem",
         marginLeft: "-4rem",
       }}
     />
+    </div>
+    <div class="h-6 w-full rounded-t-full bg-[#ffefd8] shadow-inner"></div>
   </div>
   <div class="container relative z-10 m-auto min-h-[calc(100vh-96px)] px-2 py-8">
     <div class="flex h-96 w-full flex-col items-center justify-center">
@@ -57,32 +59,8 @@ type Homework = {
     >4/4</span
     > or <span class="rounded-md border border-black px-1">3/4</span> in the
     homework assignments.</p>
-
-    <div
-      class="my-8 grid grid-cols-1 gap-4 rounded-xl bg-[#fff5ea]/50 p-1 shadow-lg sm:grid-cols-2 md:p-4 2xl:grid-cols-4"
-    >
-      <h2 class="col-span-full mb-2 text-center text-3xl font-bold">
-        Fall 2024
-      </h2>
-      {
-        (fall2024 as Homework[]).map((homework) => (
-          <Homework homework={homework} />
-        ))
-      }
-    </div>
-    
-    <div
-      class="my-8 grid grid-cols-1 gap-4 rounded-xl bg-[#fff5ea]/50 p-1 shadow-lg sm:grid-cols-2 md:p-4 2xl:grid-cols-4"
-    >
-      <h2 class="col-span-full mb-2 text-center text-3xl font-bold">
-        Fall 2023
-      </h2>
-      {
-        (fall2023 as Homework[]).map((homework) => (
-          <Homework homework={homework} />
-        ))
-      }
-    </div>
+    <Semester homeworks={fall2024} header="Fall 2024" />
+    <Semester homeworks={fall2023} header="Fall 2023" />
   </div>
 	<div class="container mx-auto h-24 rounded-t-xl bg-[#fff5ea] p-1 text-center md:p-4">
 		<ul class="flex flex-row justify-center">
