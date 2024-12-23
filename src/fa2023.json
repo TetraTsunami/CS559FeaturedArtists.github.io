@@ -13,22 +13,22 @@
       { "link": "fa2023/hw8/score3/2/cs559_assignment8.html", "title": "Pyramid" },
       { "link": "fa2023/hw8/score3/3/program8.html", "title": "Program eight" },
       { "link": "fa2023/hw8/score3/4/p8.html", "title": "Shiny Diamond" },
-      { "link": "fa2023/hw8/score3/5/fa2023/hw8.html", "title": "Textured shape" }
+      { "link": "fa2023/hw8/score3/5/HW8.html", "title": "Textured shape" }
     ]
   },
   {
     "number": 7,
     "sample4": [
       { "link": "fa2023/hw7/score4/1/demo.html", "title": "Asteroids" },
-      { "link": "fa2023/hw7/score4/2/fa2023/hw7.html", "title": "Tetris" },
+      { "link": "fa2023/hw7/score4/2/hw7.html", "title": "Tetris" },
       { "link": "fa2023/hw7/score4/3/index.html", "title": "Plane" },
       { "link": "fa2023/hw7/score4/4/p7.html", "title": "Mario Galaxy" },
       { "link": "fa2023/hw7/score4/5/demo.html", "title": "Pepe in the dark" }
     ],
     "sample3": [
-      { "link": "fa2023/hw7/score3/1/fa2023/hw7.html", "title": "Rainbow diamond" },
+      { "link": "fa2023/hw7/score3/1/hw7.html", "title": "Rainbow diamond" },
       {
-        "link": "fa2023/hw7/score3/2/fa2023/hw7.html",
+        "link": "fa2023/hw7/score3/2/HW7.html",
         "title": "Floating Pyramid"
       },
       {
@@ -96,7 +96,7 @@
       { "link": "fa2023/hw5/score4/1/html.html", "title": "Cymatics" },
       { "link": "fa2023/hw5/score4/2/index.html", "title": "City Simulator" },
       { "link": "fa2023/hw5/score4/3/sky.html", "title": "Starry night sky" },
-      { "link": "fa2023/hw5/score4/4/fa2023/hw5.html", "title": "Revolving world" },
+      { "link": "fa2023/hw5/score4/4/hw5.html", "title": "Revolving world" },
       { "link": "fa2023/hw5/score4/5/p5.html", "title": "Mario planet" }
     ],
     "sample3": [
@@ -113,7 +113,7 @@
       { "link": "fa2023/hw4/score4/1/p4.html", "title": "Aim for the stars!" },
       { "link": "fa2023/hw4/score4/2/p4.html", "title": "Krako Bossfight" },
       { "link": "fa2023/hw4/score4/3/assignment4.html", "title": "Boid flock" },
-      { "link": "fa2023/hw4/score4/4/fa2023/hw4.html", "title": "Cat missile" },
+      { "link": "fa2023/hw4/score4/4/hw4.html", "title": "Cat missile" },
       { "link": "fa2023/hw4/score4/5/index.html", "title": "FALLing leaves" },
       { "link": "fa2023/hw4/score4/6/index.html", "title": "Mad Pathfinder" }
     ],
@@ -146,14 +146,14 @@
       { "link": "fa2023/hw3/score3/2/source.html", "title": "River crossing" },
       { "link": "fa2023/hw3/score3/3/p3.html", "title": "Waving clock" },
       { "link": "fa2023/hw3/score3/4/project3.html", "title": "Solar System" },
-      { "link": "fa2023/hw3/score3/5ferrisWheel.html", "title": "Ferris wheel" }
+      { "link": "fa2023/hw3/score3/5/ferrisWheel.html", "title": "Ferris wheel" }
     ]
   },
   {
     "number": 2,
     "sample4": [
       {
-        "link": "fa2023/hw2/score4/1/lhrfa2023/hw2Animate.html",
+        "link": "fa2023/hw2/score4/1/lhrHW2Animate.html",
         "title": "Trees in the wind"
       },
       { "link": "fa2023/hw2/score4/2/pa2.html", "title": "Fourier Transforms" },
@@ -182,7 +182,7 @@
     "sample4": [
       { "link": "fa2023/hw1/score4/1/simple_maze.html", "title": "Sample Maze" },
       {
-        "link": "fa2023/hw1/score4/2flyingButterfly.html",
+        "link": "fa2023/hw1/score4/2/FlyingButterfly.html",
         "title": "Flying Butterfly"
       },
       { "link": "fa2023/hw1/score4/3/slider_rush.html", "title": "Slider rush" },
