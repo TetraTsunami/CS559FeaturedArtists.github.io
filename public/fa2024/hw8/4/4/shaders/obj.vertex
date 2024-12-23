@@ -1,0 +1,30 @@
+// vim: set ft=glsl:
+precision highp float;
+attribute vec3 position;
+attribute vec2 texCoord;
+attribute vec3 vNormal; 
+
+uniform vec3 cubeLoc;
+uniform mat4 MVP;
+uniform mat4 MV;
+uniform mat3 uNormalMatrix;
+
+varying vec4 fColor;
+varying vec2 fTexCoord;
+varying vec3 fNormal;
+varying vec3 fWorldPos;
+
+// Assuming the light source emanates from the player
+
+void main() {
+    vec4 pos = MVP * vec4(position + cubeLoc, 1.0);
+    gl_Position = pos;
+    vec3 theNormal = normalize(uNormalMatrix * vNormal);
+    vec3 lightDir = normalize(-pos.xyz);
+    float lightDist = length(pos.xyz) / 50.0;
+    float stremf = clamp(1.0 / (lightDist * lightDist), 0.5, 1.0);
+    fWorldPos = (MV * vec4(position + cubeLoc, 1.0)).xyz;
+    fNormal = theNormal;
+    fColor = vec4(vec3(1.0, 1.0, 1.0) * dot(lightDir, theNormal), 1.0);
+    fTexCoord = texCoord;
+}

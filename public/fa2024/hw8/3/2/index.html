@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>prog8</title>
+</head>
+
+<body>
+    <canvas id="mycanvas" width="800" height="800" style="border-style: solid; max-width: 60%; height:60%"></canvas>
+    <br>
+    <input id="slider1" type="range" min="0" max="200" /> Camera angle <br>
+    <input id="slider2" type="range" min="200" max="800" /> Camera distance
+    <script id="vertexShader" type="not-js">
+        attribute vec3 vPosition;
+        attribute vec3 vNormal;
+        attribute vec2 vTexCoord;
+        varying vec3 fNormal;   
+        varying vec3 fPosition;
+        varying vec2 fTexCoord;
+
+        uniform mat4 uMVP;
+        uniform mat4 uMV;
+  
+        void main(void) {
+          gl_Position = uMVP * vec4(vPosition, 1.0);
+          fNormal = vNormal;
+          fPosition = (uMV * vec4(vPosition, 1.0)).xyz;
+          fTexCoord = vTexCoord;
+        }
+      </script>
+
+    <script id="fragmentShader" type="not-js">
+        precision highp float;
+        varying vec3 fNormal;
+        varying vec3 fPosition;
+        varying vec2 fTexCoord;
+        const float ambient_coeff = .6;
+        const float diffuse_coeff = 0.5;
+        const float specular_exp = 4.0;
+        const float specular_coeff = 0.9;
+        const vec3 light_source = vec3(1, 0, 1);
+        const vec3 light_color = vec3(1, 1, 1);
+        uniform mat4 uMV;
+        uniform mat3 uMVn;
+        uniform mat3 uModel;
+        uniform sampler2D uTexture;
+
+        
+  
+        void main(void) {
+            vec3 n = normalize(uMVn * fNormal);
+            vec3 s = normalize(light_source);
+            vec3 e = normalize(-fPosition);
+            vec3 h = normalize(e+s);    
+
+            vec3 texColor = texture2D(uTexture, fTexCoord).xyz; 
+
+            vec3 ambient_color = ambient_coeff * texColor;
+            vec3 diffuse_color = texColor * diffuse_coeff * dot(n, s);
+            vec3 specular_color = specular_coeff * pow(max(0.0,dot(n,h)),specular_exp) * light_color;
+            vec3 phong_color = ambient_color + diffuse_color + specular_color;
+            gl_FragColor = vec4(phong_color, 1);
+        }
+      </script>
+    <script type="text/javascript" src="webgl-debug.js"></script>
+    <script type="text/javascript" src="gl-matrix-min.js"></script>
+    <script type="text/javascript" src="sphere.js"></script>
+    <script type="text/javascript" src="checkerboard-img.js"></script>
+    <script type="text/javascript" src="webgl-utils.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+</body>
+
+</html>

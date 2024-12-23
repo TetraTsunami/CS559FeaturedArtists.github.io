@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="description" content="A fun, interactive JavaScript FPS game with customizable mouse sensitivity and intuitive controls.">
+    <meta charset="utf-8">
+    <title>Guns N' Poses</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: row;
+            margin: 0;
+            padding: 0;
+        }
+        #canvas {
+            border: 3px solid #000;
+        }
+        .controls {
+            margin-left: 30px;
+            margin-top: 30px;
+            font-size: 18px; 
+        }
+        .controls h1 {
+            font-size: 22px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="1600" height="900"></canvas>
+    <div class="controls">
+        
+        <label for="slider1">Mouse Sensitivity:</label>
+        <input id="slider1" type="range" min="1" max="10" />
+        
+        <label for="fovSlider">Field of View:</label>
+        <input id="fovSlider" type="range" min="55" max="95" step="1">
+        <p>FOV: <span id="fovValue">65</span>°</p>
+
+        <h1>Game Controls</h1>
+        <ul>
+            <li><strong>W</strong>: Walk Forward</li>
+            <li><strong>S</strong>: Walk Backward</li>
+            <li><strong>A</strong>: Move Left</li>
+            <li><strong>D</strong>: Move Right</li>
+            <li><strong>Shift</strong>: Sprint</li>
+            <li><strong>C</strong>: Crouch</li>
+            <li><strong>Space</strong>: Jump</li>
+            <li><strong>Left Mouse Button Hold</strong>: Rifle Shoot</li>
+            <li><strong>Right Mouse Button Click</strong>: Single Heavy Shot</li>
+            <li><strong>Right Mouse Button Hold</strong>: Charged Heavy Shot</li>
+        </ul>
+        <p><strong>Instructions:</strong> Click on the game to take pointer control. Press <strong>Esc</strong> to exit pointer control.</p>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

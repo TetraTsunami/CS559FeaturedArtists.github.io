@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="description" content="CS559 HW1">
+    <meta charset="utf-8">
+    <title>CS559 HW1</title>
+</head>
+
+<body>
+<p>Circle/Sector made of triangles<p/>
+<canvas id="deez" width="512" height="512"></canvas>
+<br/>
+<p>Start Angle <input id="nStartAngle" type="range" min="0" max="360" step="0.1" value="270"/></p>
+<p>Radius <input id="nRadius" type="range" min="0" max="250" value="150"/></p>
+<p>Precision (Number of polygons) <input id="nPoints" style="width: 66%;" type="range" min="3" max="512" value="64"/></p>
+<p>Percentage <input id="nPercentage" style="width: 75%;" type="range" min="0" max="1" step="0.001" value="0.75"/></p>
+<p>Color <input type="color" id="strColor" value="#96CDE6"/> Rainbow Color <input type="checkbox" id="bRainbow" checked/></p>
+<p>Outlined <input type="checkbox" id="bOutline" checked/> Outline Color <input type="color" id="strOutlineColor" value="#111111"/> Rainbow Color Outline <input type="checkbox" id="bRainbow2"/></p>
+<script src="hw1.js"></script>
+</body>
+
+</html>

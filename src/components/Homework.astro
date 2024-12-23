@@ -1,0 +1,48 @@
+---
+const { homework } = Astro.props as { homework: {
+  number: number;
+  sample4: { title: string; link: string }[];
+  sample3: { title: string; link: string }[];
+}};
+---
+<div
+  class="min-h-[150px] rounded-xl bg-[#fff5ea] p-2 shadow-md md:p-4"
+  style={{ transform: "rotate(" + (Math.random() - 0.5) + "deg)" }}
+>
+  <h2 class="pb-4 text-center text-xl font-semibold">
+    Homework {homework.number}
+  </h2>
+  <div class="grid grid-cols-2 gap-2">
+    <h3 class="text-lg font-semibold">Score 4</h3>
+    <h3 class="text-lg font-semibold">Score 3</h3>
+    <ul>
+      {homework.sample4.map((sample) => (
+        <li>
+          <a
+            class="text-teal-700 underline visited:text-violet-700 hover:text-teal-500"
+            href={sample.link}
+            target="_blank"
+          >
+            {sample.title}
+          </a>
+        </li>
+      ))}
+    </ul>
+    <ul>
+      {homework.sample3.map((sample) => (
+        <li>
+          <a
+            class="text-teal-700 underline visited:text-violet-700 hover:text-teal-500"
+            href={sample.link}
+            target="_blank"
+          >
+            {sample.title}
+          </a>
+        </li>
+      ))}
+    </ul>
+    <span class="pointer-events-none absolute bottom-0 left-4 text-[150px] font-semibold leading-none text-black/5">
+      {homework.number}
+    </span>
+  </div>
+</div>

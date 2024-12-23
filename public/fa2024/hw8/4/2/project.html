@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Landscape</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: #083b48;
+            color: #d6ebf0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 36px;
+            color: #d6ebf0;
+        }
+
+        canvas {
+            border: 1px solid #000;
+            max-height: 700px;
+            width: 100%;
+            display: block;
+            margin-top: 20px;
+        }
+
+        #instructions {
+            text-align: left;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.25);
+            color: #d6ebf0;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+
+        #controls {
+            margin-top: 10px;
+            padding: 10px;
+        }
+
+        .button {
+            background-color: #2c6b80;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #1f4c5f;
+        }
+
+        .description {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #d6ebf0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Landscape</h1>
+    <p class="description">Landscape with different times of day.</p>
+    <canvas id="glcanvas" width="800" height="800"></canvas>
+
+    <div id="controls">
+        <button class="button" id="resetButton">Reset View</button>
+    </div>
+
+    <div id="instructions">
+        <p><strong>Controls:</strong>
+            <br>
+            <strong>Orbit:</strong> Left-click and drag
+            <br>
+            <strong>Pan:</strong> Shift + Left-click and drag
+            <br>
+            <strong>Zoom:</strong> Scroll wheel
+        </p>
+    </div>
+
+    <script id="vertexShaderSkybox" type="x-shader/x-vertex">
+        attribute vec3 aPosition;
+        uniform mat4 uMVPMatrix;
+        varying vec3 vPosition;
+
+        void main(void) {
+            vPosition = aPosition;
+            gl_Position = uMVPMatrix * vec4(aPosition, 1.0);
+        }
+    </script>
+
+    <script id="fragmentShaderSkybox" type="x-shader/x-fragment">
+        precision mediump float;
+        uniform vec3 uSunDirection;
+        varying vec3 vPosition;
+
+        vec4 lerp(vec4 start, vec4 end, float t) {
+            return start + t * (end - start);
+        }
+
+        void main(void) {
+            float sunElevation = uSunDirection.y;
+            float t = (sunElevation + 1.0) * 0.5; 
+
+            vec3 direction = normalize(vPosition);
+            vec4 skyColor;
+
+            vec4 sunrise = vec4(1.0, 0.5, 0.0, 1.0);
+            vec4 noon = vec4(0.53, 0.81, 0.92, 1.0);
+            vec4 sunset = vec4(1.0, 0.27, 0.0, 1.0);
+            vec4 evening = vec4(0.0, 0.0, 0.5, 1.0);
+            vec4 night = vec4(0.0, 0.0, 0.1, 1.0);
+
+            if (t < 0.2) {
+                float u = t / 0.2;
+                skyColor = lerp(night, evening, u);
+            } else if (t < 0.4) {
+                float u = (t - 0.2) / 0.2;
+                skyColor = lerp(evening, sunset, u);
+            } else if (t < 0.7) {
+                float u = (t - 0.4) / 0.3;
+                skyColor = lerp(sunset, sunrise, u);
+            } else {
+                float u = (t - 0.7) / 0.3;
+                skyColor = lerp(sunrise, noon, u);
+            }
+
+            gl_FragColor = skyColor;
+        }
+    </script>
+
+    <script id="vertexShader" type="x-shader/x-vertex">
+        precision mediump float;
+        
+        attribute vec3 aPosition;
+        attribute vec3 aNormal;
+        attribute vec4 aColor;
+        attribute vec2 aTexCoord;
+
+        uniform mat4 uModelMatrix;
+        uniform mat4 uMVMatrix;
+        uniform mat4 uMVPMatrix;
+        uniform mat3 uNormalMatrix;
+
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        varying vec2 vTexCoord;
+        varying vec4 vColor;
+
+        varying vec4 vWorldPosition;
+        uniform mat4 uLightMVPMatrix;
+
+        void main(void) {
+            vPosition = vec3(uMVMatrix * vec4(aPosition, 1.0));
+            vNormal = normalize(uNormalMatrix * aNormal);
+            vTexCoord = aTexCoord;
+            vColor = aColor;
+            gl_Position = uMVPMatrix * vec4(aPosition, 1.0);
+            vWorldPosition = uModelMatrix * vec4(aPosition, 1.0);
+        }
+    </script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        uniform vec4 uSunriseColor;
+        uniform vec4 uNoonColor;
+        uniform vec4 uSunsetColor;
+        uniform vec4 uEveningColor;
+        uniform vec4 uNightColor;
+
+        uniform vec3 uSunDirection;
+
+        uniform bool uUseTexture;
+        uniform sampler2D uTexture;
+        
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        varying vec2 vTexCoord;
+        varying vec4 vColor;
+        varying vec4 vWorldPosition;
+
+        uniform vec3 uLightPosition;
+        uniform vec3 uViewPosition;
+
+        uniform bool uShadowMapEnabled;
+        uniform sampler2D uShadowMap;
+        uniform mat4 uLightMVPMatrix;
+
+        vec4 lerp(vec4 start, vec4 end, float t) {
+            return start + t * (end - start);
+        }
+
+        float calculateShadow(vec4 lightSpacePos, vec3 lightDir) {
+            vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+            projCoords = projCoords * 0.5 + 0.5;
+    
+            if(projCoords.z > 1.0)
+                return 1.0;
+    
+            float slope = 1.0 - dot(vNormal, lightDir);
+            float bias = max(0.0009 * slope, 0.0009);                
+            float currentDepth = projCoords.z - bias;
+            float samples = 4.0;
+            float offset = 1.0 / 1024.0;
+
+            float totalSamples = samples * samples;
+    
+            float shadow = 0.0;
+            for(float x = -2.0; x <= 2.0; x++) {
+                for(float y = -2.0; y <= 2.0; y++) {
+                    float closestDepth = texture2D(uShadowMap, projCoords.xy + vec2(x, y) * offset).r;
+                    if(currentDepth > closestDepth)
+                        shadow += 1.0;
+                }
+            }
+            shadow /= totalSamples;
+            return 1.0 - shadow;
+        }
+
+        void main(void) {
+            vec4 texColor = texture2D(uTexture, vTexCoord);
+            vec3 baseColor = uUseTexture ? mix(texColor.rgb, vColor.rgb, 0.3) : vColor.rgb;
+
+            vec3 ambient = 0.3 * baseColor.rgb;
+            vec3 lightDir = normalize(uLightPosition - vPosition);
+            float diff = max(dot(vNormal, lightDir), 0.0);
+            vec3 diffuse = diff * baseColor.rgb;
+            vec3 specular = vec3(0.3) * pow(max(dot(normalize(uViewPosition - vPosition), reflect(-lightDir, vNormal)), 0.0), 16.0);
+            
+            float shadow = 1.0;
+            if (uShadowMapEnabled) {
+                vec4 lightSpacePos = uLightMVPMatrix * vWorldPosition;
+                shadow = calculateShadow(lightSpacePos, lightDir);
+            }
+
+            float shadowBlend = mix(1.0, shadow, 0.75);
+            vec3 finalColor = ambient + shadowBlend * (diffuse + specular);
+
+
+            float sunElevation = uSunDirection.y;
+            float t = (sunElevation + 1.0) * 0.5;
+
+            vec4 skyColor;
+            if (t < 0.2) {
+                float u = t / 0.2;
+                skyColor = lerp(uNightColor, uEveningColor, u);
+            } else if (t < 0.4) {
+                float u = (t - 0.2) / 0.2;
+                skyColor = lerp(uEveningColor, uSunsetColor, u);
+            } else if (t < 0.7) {
+                float u = (t - 0.4) / 0.3;
+                skyColor = lerp(uSunsetColor, uSunriseColor, u);
+            } else {
+                float u = (t - 0.7) / 0.3;
+                skyColor = lerp(uSunriseColor, uNoonColor, u);
+            }
+
+            float elevationFactor = pow(clamp((vWorldPosition.y + 10.0) / 50.0, 0.0, 1.0), 2.0);
+            finalColor = mix(vec3(0.0), finalColor, max(0.3, elevationFactor));
+
+            float fogFactor = clamp(1.0 - length(vPosition) * 0.0003, 0.0, 1.0);
+            finalColor = mix(vec3(0.5, 0.7, 1.0), finalColor, fogFactor);
+
+            gl_FragColor = vec4(finalColor, vColor.a);
+        }
+    </script>
+
+    <script id="depthVertexShader" type="x-shader/x-vertex">
+        attribute vec3 aPosition;
+
+        uniform mat4 uLightMVPMatrix;
+
+        void main(void) {
+            gl_Position = uLightMVPMatrix * vec4(aPosition, 1.0);
+        }
+    </script>
+
+    <script id="depthFragmentShader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        void main(void) {
+            gl_FragColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
+        }
+    </script>
+
+    <script id="rainVertexShader" type="x-shader/x-vertex">
+        attribute vec3 aPosition;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uMVPMatrix;
+
+        void main(void) {
+            gl_Position = uMVPMatrix * vec4(aPosition, 1.0);
+            gl_PointSize = 2.0; // Adjust size as needed
+        }
+    </script>
+
+    <script id="rainFragmentShader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        uniform vec4 uColor;
+
+        void main(void) {
+            gl_FragColor = uColor;
+        }
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.0.0/simplex-noise.js"></script>
+    <script src="grass.js"></script>
+    <script src="rock.js"></script>
+    <script src="trunk.js"></script>
+    <script src="foliage.js"></script>
+    <script src="moon.js"></script>
+    <script src="cloud.js"></script>
+    <script src="water.js"></script>
+    <script src="PAIN.js"></script>
+</body>
+
+</html>

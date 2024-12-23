@@ -1,0 +1,18 @@
+body {
+    background-color: #BDA5A8;
+    text-align: center;
+    font-family: Verdana, sans-serif;
+    color: #F9EEED;
+}
+
+canvas {
+    margin: auto;
+    display: block;
+    border: 20px solid #F9EEED;
+}
+
+div {
+    padding-top: 5px;
+    font-size: x-small;
+}
+

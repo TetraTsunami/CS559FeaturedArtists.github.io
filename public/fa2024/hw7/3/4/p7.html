@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Programming Assignment #7: 3D scenery</title>
+    </head>
+    <body>
+            
+        <script id="vertexShader" type="not-js">
+          attribute vec3 vPosition;
+          attribute vec3 vNormal;
+          attribute vec3 vColor;
+          varying vec3 fPosition;
+          varying vec3 fColor;
+          varying vec3 fNormal;
+          uniform mat4 uMV;
+          uniform mat4 uMVP;
+    
+          void main(void) {
+            gl_Position = uMVP * vec4(vPosition, 1.0);
+            fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+            fColor = vColor;
+            fNormal = vNormal;                            // In local coordinates
+         }
+        </script>
+    
+        <script id="fragmentShader" type="not-js">
+          precision highp float;
+
+          varying vec3 fPosition;
+          varying vec3 fColor;
+          varying vec3 fNormal;
+          
+          uniform mat4 uMV;
+          uniform mat3 uMVn;
+          uniform float time;
+          
+          // Define light and material properties
+          const vec3 lightV = vec3(0.0, -0.3, 1.0);  // Direction of light
+          const float lightI = 1.0;  // Intensity of light (diffuse)
+          const float ambientC = 0.4;  // Ambient coefficient
+          const float diffuseC = 0.4;  // Diffuse coefficient
+          const float specularC = 0.8;  // Specular coefficient
+          const float specularE = 32.0;  // Specular exponent
+          const vec3 lightCol = vec3(1.0, 1.0, 1.0); 
+          
+          // Base object color
+          const vec3 base_obj_color = vec3(0.0, 0.14, 0.7);
+          
+          // Light 1 direction and color
+          const vec3 light1_direction = normalize(vec3(0.0, -1.0, 1.0));
+          const vec3 light1_color = vec3(0.1, 0.8, 0.5);
+          
+          // Light 2 direction and color
+          const vec3 light2_direction = normalize(vec3(1.0, 1.0, 0.0));
+          const vec3 light2_color = vec3(1.0, 0.1, 0.1);
+          
+          void main(void) {
+              // Normal vector in camera space
+              vec3 n = normalize(uMVn * fNormal);
+              
+              // View direction (from camera to fragment position)
+              vec3 e = normalize(-fPosition);
+              
+              // Light 1
+              vec3 l1 = normalize(light1_direction);
+              vec3 h1 = normalize(e + l1);  // Halfway vector for light 1
+          
+              // Light 2
+              vec3 l2 = normalize(light2_direction);
+              vec3 h2 = normalize(e + l2);  // Halfway vector for light 2
+          
+              // Time-varying component for object color
+              vec3 obj_color = base_obj_color;
+          
+              // Calculate ambient lighting
+              vec3 ambient_color = ambientC * obj_color;
+          
+              //  light 1
+              vec3 specular_color1 = specularC * pow(max(0.0, dot(n, h1)), specularE) * light1_color;
+              vec3 diffuse_color1 = diffuseC * max(0.0, dot(n, l1)) * obj_color;
+          
+              // light 2
+              vec3 specular_color2 = specularC * pow(max(0.0, dot(n, h2)), specularE) * light2_color;
+              vec3 diffuse_color2 = diffuseC * max(0.0, dot(n, l2)) * obj_color;
+          
+              // Combine the results
+              vec3 final_color = ambient_color + diffuse_color1 + specular_color1 + diffuse_color2 + specular_color2;
+          
+
+              // Set the final fragment color
+              gl_FragColor = vec4(final_color, 1.0);
+          }
+          
+        </script>
+
+        <canvas id="my-canvas" width="500" height="500"></canvas>
+        <br>
+        <input id="slider1" type="range" min="-100" max="100" />
+        <input id="slider2" type="range" min="-100" max="100" />
+
+        <script type="text/javascript" src="gl-matrix-min.js"></script>
+        <script src="p7.js" id="module"></script>
+    </body>
+</html>

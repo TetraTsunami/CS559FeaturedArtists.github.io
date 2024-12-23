@@ -1,0 +1,5 @@
+[loader]
+".vertex" = "text"
+".vert" = "text"
+".frag" = "text"
+".png" = "text"

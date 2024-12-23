@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<head style = "font-family :'Franklin Gothic Medium'; background-color : peachpuff">
+<title style = "font-family :'Franklin Gothic Medium'; background-color : peachpuff">Project 1: Spider-Man! </title>
+Match Spider-Man's eyes to his face!
+<br/>
+</head>
+<body style = "font-family :'Franklin Gothic Medium'; background-color : #ffdab9">
+<canvas id="myCanvas" width="500" height="500"></canvas>
+<br/>
+X-axis <br>
+<input id="slider1" type="range" min="0" max="325" />
+<br/>
+Y-axis <br>
+<input id="slider2" type="range" min="0" max="325" />
+<br/><br/>
+</body>
+</html>
+
+
+<script>
+function setup() { "use strict";
+var canvas = document.getElementById('myCanvas');
+var slider1 = document.getElementById('slider1');
+slider1.value = 0;
+var slider2 = document.getElementById('slider2');
+slider2.value = 0;
+var button = document.getElementById('button');
+
+// Places Spider-Man's Head in random location on canvas
+var startX = Math.random() * 150 +50;
+var startY = Math.random() * 150 + 50;
+
+
+function draw(){
+var context = canvas.getContext('2d');
+canvas.width = canvas.width;
+var dx = slider1.value;
+var dy = slider2.value;
+
+
+    
+function DrawLeftEye(color){
+    context.beginPath();
+      context.fillStyle = "black";
+      context.moveTo(30,30);
+      context.lineTo(30,85);
+      context.lineTo(40,100);
+      context.lineTo(50,110);
+      context.lineTo(75,120);
+      context.lineTo(90,110);
+      context.lineTo(100,90);
+      context.lineTo(110,95);
+      context.lineTo(100,90);
+      context.lineTo(65,70);
+      context.fill(); 
+}
+
+function DrawRightEye(color){
+    context.beginPath()
+    context.fillStyle = "black";
+      context.moveTo(190,30);
+      context.lineTo(190,85);
+      context.lineTo(180,100);
+      context.lineTo(170,110);
+      context.lineTo(145,120);
+      context.lineTo(130,110);
+      context.lineTo(120,90);
+      context.lineTo(110,95);
+      context.lineTo(120,90);
+      context.lineTo(155,70);
+      context.fill(); 
+}
+
+
+function DrawHead(color){
+context.beginPath();
+context.fillStyle = color;
+context.moveTo(startX + 40,startY + 55);
+    context.lineTo(startX + 100,startY + 40);
+    context.lineTo(startX + 160,startY + 55);
+    context.lineTo(startX + 200,startY + 105);
+    context.lineTo(startX + 195,startY + 215);
+    context.lineTo(startX + 145,startY + 300);
+    context.lineTo(startX + 55,startY + 300);
+    context.lineTo(startX + 5, startY + 215);
+    context.lineTo(startX , startY + 105);
+    context.closePath();
+    context.fill();
+}
+
+
+context.save();
+DrawHead("red");
+
+context.translate(dx,dy);
+DrawRightEye("blue");
+DrawLeftEye("green");
+context.restore();
+}
+ 
+slider1.addEventListener("input", draw);
+slider2.addEventListener("input", draw);
+draw();   
+
+
+};
+window.onload = setup;
+
+</script>
+<script>
+    function done(){
+        var canvas = document.getElementById('myCanvas');
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = "#ffdab9";
+         ctx.beginPath();
+         ctx.moveTo(0, 0);
+         ctx.lineTo(500, 0);
+         ctx.lineTo(500, 500);
+         ctx.lineTo(0, 500);
+         ctx.closePath();
+         ctx.fill();
+
+
+        ctx.fillStyle = "yellow";
+         ctx.beginPath();
+         ctx.moveTo(158, 50);
+         ctx.lineTo(191, 120);
+         ctx.lineTo(268, 128.3);
+         ctx.lineTo(212, 181);
+         ctx.lineTo(225, 255);
+         ctx.lineTo(158, 220);
+         ctx.lineTo(91.2, 255);
+         ctx.lineTo(105, 181);
+         ctx.lineTo(51, 128);
+         ctx.lineTo(125, 118);
+         ctx.lineTo(158, 50);
+         ctx.closePath();
+         ctx.fill();
+
+         ctx.font = "24px serif";
+         ctx.fillStyle = "black";
+         ctx.fillText("Spider-Man!", 102,150)
+    
+}
+</script>
+<body>
+    <input id = "button" type ="button" value = "DONE" onclick="done()"></input>
+</body>
+
+
+
+
+

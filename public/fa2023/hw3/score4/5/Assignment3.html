@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Super Caterpillar</title>
+  </head>
+  <body>
+    <canvas id="canvas" width="600px" height="400px" style="border-radius: 10px; float: left;">
+    </canvas>
+    <br>
+    <div id="text" style="text-align: center; border-radius: 10px; font-family: monospace;">
+        <p id="score">Score: 0</p>
+        <p>You and the shooters only move when your mouse does. Avoid shooters for as long as you can! Hit the "Restart" button to play again if you lose. Use the sliders below to adjust difficulty.</p>
+        <p>Speed:</p>
+        <input id="speedSlider" type="range" min="1" max="15" style="appearance: none; border-radius: 10px;"/>
+        <p>Body Scaling:</p>
+        <input id="bodyScaleSlider" type="range" min="85" max="100" style="appearance: none; border-radius: 10px;"/>
+        <p>Number of body segments:</p>
+        <input id="numSegmentsSlider" type="range" min="0" max="200" style="appearance: none; border-radius: 10px;"/>
+        <button type="button" id="restart" onclick=restart() style="appearance: none; border-radius: 10px;">Restart</button>
+    </div>
+    <script src="Assignment3.js" id="module"></script>
+    <script src="gl-matrix-min.js"></script>
+  </body>
+</html>

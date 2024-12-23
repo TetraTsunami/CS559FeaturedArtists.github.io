@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Flappy Bird</title>
+</head>
+<body>
+<canvas id="myCanvas"
+width="600" height="400"
+style="border:1px solid #000">
+</canvas>
+<br/>
+Up<input id="slider" type="range" min="0" max="400" />Down
+<br/>
+Easy<input id="speed" type="range" min="40" max="150" />Hard
+<script> 
+var HEIGHT = 400; 
+var WIDTH = 600; 
+var pillar_width = 50;
+var bird_radius = 20;
+var stand_height = 20;
+</script>
+<script src="shapes.js" id="shape"></script>
+<script src="demo.js" id="module"></script>
+</body>
+</html>

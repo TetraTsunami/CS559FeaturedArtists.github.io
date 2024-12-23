@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Forest</title>
+</head>
+
+<body>
+  <script id="vShdrBird" type="not-js">
+      attribute vec3 vPosition;
+      attribute vec3 vNormal;
+      attribute vec3 vColor;
+      varying vec3 fPosition;
+      varying vec3 fColor;
+      varying vec3 fNormal;
+      uniform mat4 uMV;
+      uniform mat4 uMVP;
+      uniform float time;
+
+      void main(void) {
+        gl_Position = uMVP * vec4(vPosition, 1.0);
+        fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+        fColor = vColor;
+        fNormal = vNormal;                            // In local coordinates
+     }
+    </script>
+
+  <script id="fShdrBird" type="not-js">
+      precision highp float;
+      uniform float time;
+      varying vec3 fPosition;
+      varying vec3 fNormal;
+      varying vec3 rawPos;
+
+      const float ambient_coeff = 0.2;
+      const float specular_coeff = 2.0;
+      const float specular_exp = 20.0;
+      const vec3 lightDir = vec3(1,1,0);
+
+      void main()
+      {
+        // diffuse object light
+        //0.11, 0.09, 0.72
+        vec3 Objcolor = vec3(0.11, 0.09, 0.72);
+        float Objdiffuse = .1 + dot(fNormal, lightDir);
+        
+        // specular light
+        vec3 l = normalize(lightDir);
+        vec3 n = normalize(fNormal);
+        vec3 e = normalize(-fPosition);
+        vec3 h = normalize (e+l);
+        vec3 specularLighting = vec3(1, 1, 1);
+        vec3 specular_color = specular_coeff * pow(max(0.0,dot(n,h)),specular_exp) * specularLighting;
+        
+        // ambient lighting 
+        vec3 ambient_color  = ambient_coeff  * Objcolor;
+        
+        // phong lighting combining all 3 types
+        vec3 phongLighting = (specular_color + ambient_color) +  
+        (Objdiffuse * Objcolor);
+        gl_FragColor = vec4(phongLighting, 1.0);  
+
+      }
+    </script>
+
+    <script id="vShdrTrunk" type="not-js">
+      attribute vec3 vPosition;
+      attribute vec3 vNormal;
+      attribute vec3 vColor;
+      varying vec3 fPosition;
+      varying vec3 fColor;
+      varying vec3 fNormal;
+      uniform mat4 uMV;
+      uniform mat4 uMVP;
+      uniform float time;
+
+      void main(void) {
+        gl_Position = uMVP * vec4(vPosition, 1.0);
+        fPosition = (uMV * vec4(vPosition, 1.0)).xyz; // In camera coordinates
+        fColor = vColor;
+        fNormal = vNormal;                            // In local coordinates
+     }
+    </script>
+
+  <script id="fShdrTrunk" type="not-js">
+      precision highp float;
+      uniform float time;
+      varying vec3 fPosition;
+      varying vec3 fNormal;
+      varying vec3 rawPos;
+
+      const float ambient_coeff = 0.2;
+      const float specular_coeff = 2.0;
+      const float specular_exp = 30.0;
+      const vec3 lightDir = vec3(0.2,1,1);
+
+      void main()
+      {
+        // diffuse object light
+        //0.11, 0.09, 0.72
+        vec3 Objcolor = vec3(0.26, 0.19, 0.12);
+        float Objdiffuse = .1 + dot(fNormal, lightDir);
+        
+        // specular light
+        vec3 l = normalize(lightDir);
+        vec3 n = normalize(fNormal);
+        vec3 e = normalize(-fPosition);
+        vec3 h = normalize (e+l);
+        vec3 specularLighting = vec3(1, 1, 1);
+        vec3 specular_color = specular_coeff * pow(max(0.0,dot(n,h)),specular_exp) * specularLighting;
+        
+        // ambient lighting 
+        vec3 ambient_color  = ambient_coeff  * Objcolor;
+        
+        // phong lighting combining all 3 types
+        vec3 phongLighting = (specular_color + ambient_color) +  
+        (Objdiffuse * Objcolor);
+        gl_FragColor = vec4(phongLighting, 1.0);  
+
+      }
+      
+    </script>
+    <script id="fShdrCrazy" type="not-js">
+      precision highp float;
+      uniform float time;
+      varying vec3 fPosition;
+      varying vec3 fNormal;
+      varying vec3 rawPos;
+
+      const float ambient_coeff = 0.2;
+      const float specular_coeff = 2.0;
+      const float specular_exp = 20.0;
+      const vec3 lightDir = vec3(1,1,0);
+
+      void main()
+      {
+        
+        vec3 Camdir = vec3(0,-3.0*sin(10.0*time),0); 
+        vec3 Camcolor = vec3(1,0,2.0*cos(10.0*time));
+        float Camdiffuse = .1 + dot(fNormal, Camdir);
+        
+        // diffuse object light
+        //0.11, 0.09, 0.72
+        vec3 Objcolor = vec3(0.26, 0.19, 0.12);
+        float Objdiffuse = .1 + dot(fNormal, lightDir);
+        
+        // specular light
+        vec3 l = normalize(lightDir);
+        vec3 n = normalize(fNormal);
+        vec3 e = normalize(-fPosition);
+        vec3 h = normalize (e+l);
+        vec3 specularLighting = vec3(1, 1, 1);
+        vec3 specular_color = specular_coeff * pow(max(0.0,dot(n,h)),specular_exp) * specularLighting;
+        
+        // ambient lighting 
+        vec3 ambient_color  = ambient_coeff  * Objcolor;
+        
+        // phong lighting combining all 3 types
+        vec3 phongLighting = (specular_color + ambient_color) +  
+        (Objdiffuse * Objcolor) + (Camdiffuse * Camcolor);
+        gl_FragColor = vec4(phongLighting, 1.0);  
+      }
+    </script>
+
+
+
+  <canvas id="mycanvas" width="1500" height="780"></canvas>
+  <br>
+  <input id="slider" type="range" min="0" max="100" /> Move camera around scene &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+  <button onClick = "crazyMode()"> Toggle Party Mode </button>
+  <script type="text/javascript" src="glmatrix.js"></script>
+
+  <!-- Include all desired model js files here -->
+  <script src="bird.js" id="module"></script>
+  <script src="trunk.js" id="module"></script>
+  <script src="deer.js" id="module"></script>
+  <script src="forest.js" id="module"></script>
+</body>
+
+</html>

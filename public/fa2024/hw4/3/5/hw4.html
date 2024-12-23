@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Car Race Track</title>
+  </head>
+  <body>
+    <canvas id="Canvas" width="400" height="400"></canvas>
+    <br/>
+    <label for="carSpeedControl">Car Speed:</label>
+    <input id="carSpeedControl" type="range" min="0.01" max="0.1" step="0.01" value="0.05">
+    
+    <label for="trackCurveControl">Track Curve:</label>
+    <input id="trackCurveControl" type="range" min="1" max="10" step="0.1" value="2">
+
+    <label for="carSizeControl">Car Size:</label>
+    <input id="carSizeControl" type="range" min="5" max="20" step="1" value="10">
+
+    <script type="text/javascript" src="gl-matrix-min.js"></script>
+    <script src="hw4.js" id="module"></script>
+  </body>
+</html>

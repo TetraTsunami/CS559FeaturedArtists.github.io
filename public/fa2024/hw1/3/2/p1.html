@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>CS559 Project 1</title>
+</head>
+<body>
+	 <canvas id="myCanvas"
+	   width="400" height="400"
+	   style="border:1px solid #000;">
+	 </canvas>
+     <input id = "slider1" type = "range" min = "-60" max = "40">
+     <script>
+		function setup(){
+			var canvas = document.getElementById('myCanvas');
+			var slider1 = document.getElementById('slider1');
+			slider1.value = 0;
+
+			function draw(){
+				var context = canvas.getContext('2d');
+				canvas.width = canvas.width;
+				var dx = slider1.value;
+				
+				// Draw the head 
+				function drawHead(x, y) {
+					context.beginPath();
+					context.moveTo(x, y);
+					context.lineTo(x + 40, y);
+					context.lineTo(x + 40 , y - 40);
+					context.lineTo(x, y - 40)
+					context.closePath();
+					context.fillStyle = "Yellow";
+					context.fill(); 
+					context.stroke(); 
+				}
+
+				// Draw the body
+				function drawBody(x, y, bodyLength) {
+					context.beginPath();
+					context.moveTo(x, y);
+					context.lineTo(x, y + bodyLength);
+					context.stroke();
+				}
+
+				// Draw the leftArm
+				function drawLeftArm(x, y, armLength) {
+					context.beginPath();
+					context.moveTo(x, y);
+					context.lineTo(x - armLength, y + 40);
+					context.stroke();
+				}
+
+				// Draw the rightArm
+				function drawRightArm(x, y, armLength) {
+					context.beginPath();
+					context.moveTo(x, y);
+					context.lineTo(x + armLength, y + 40); 
+					context.stroke();
+				}
+
+
+				// Draw the legs
+				function drawLegs(x, y, legLength) {
+					context.beginPath();
+					context.moveTo(x, y);
+					context.lineTo(x - 25, y + legLength); // Left leg
+					context.moveTo(x, y);
+					context.lineTo(x + 25, y + legLength); // Right leg
+					context.stroke();
+				}
+
+				// Draw the sword 
+				function drawSword(x, y) {
+					// Sword hilt 
+					context.beginPath();
+					context.rect(x - 10, y - 5, 20, 2); 
+					context.fillStyle = "Silver";
+					context.fill();
+
+					context.beginPath();
+					context.rect(x - 2, y - 5, 4, 17);
+					context.fillStyle = "Silver";
+					context.fill();
+
+					// Sword blade 
+					context.beginPath();
+					context.rect(x - 2, y - 56, 4, 52);
+					context.fillStyle = "Silver"; 
+					context.fill();
+
+					// Sword edge
+					context.beginPath();
+					context.moveTo(x - 2, y - 55);
+					context.lineTo(x + .1, y - 60);
+					context.lineTo(x + 2, y - 55);
+					context.lineWidth = 1;
+					context.strokeStyle = "Silver";
+					context.fillStyle = "Silver";
+					context.fill();
+					context.stroke();
+				}
+
+				context.save();
+
+				// Draw head, body, left arms, and legs
+				drawHead(180, 100);         
+				drawBody(200, 100, 100);   
+				drawLeftArm(200, 140, 50); 
+				drawLegs(200, 200, 80);    
+
+				// Draw the sword and the right arm
+				let swordAngle = (Math.PI / 180) * dx; // Sword angle to rotate by in radians
+				context.translate(200, 140);  // Translate to the "shoulder" where arm meets body
+				context.rotate(swordAngle);   // Rotate around this position
+				drawRightArm(0, 0, 50);       // Draw right arm at translated location
+
+				let swordTiltAngle = Math.PI / 5; // Sword tilt angle to rotate sword to start
+				context.translate(50, 35);        // translate to where hand meets hilt of sword
+				context.rotate(swordTiltAngle);   // rotate the sword around this position
+				drawSword(0,0);                   // Draw sword at the new rotated position
+				context.restore();
+			}
+
+			slider1.addEventListener("input", draw);
+			draw();
+		}
+		window.onload = setup;
+	 </script>
+</body>
+</html>

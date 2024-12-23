@@ -1,0 +1,100 @@
+/* General body styling */
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background-color: #1d1b33; /* Dark navy-purple background */
+  color: #eee; /* Light text color */
+}
+
+/* Canvas styling */
+canvas {
+  border: 2px solid #343a40; /* Slightly thicker dark border */
+  border-radius: 8px; /* Rounded corners for modern look */
+  background-color: #fff; /* White background */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Subtle shadow for elevation */
+}
+
+/* Control panel styling */
+.control-panel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: flex-start;
+  width: 90%;
+  max-width: 800px;
+  padding: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  background-color: #25244c; /* Slightly lighter background for contrast */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Individual slider box styling */
+.slider-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 5px;
+  padding: 10px;
+  width: 100%;
+  max-width: 180px;
+}
+
+/* Label styling */
+label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e0e0e0;
+  margin-bottom: 8px;
+}
+
+/* Slider styling */
+input[type="range"] {
+  width: 100%;
+  appearance: none;
+  height: 6px;
+  background: #3c3a6b;
+  border-radius: 4px;
+  outline: none;
+  transition: background 0.3s ease-in-out;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #66d9ef;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #56a5d7;
+}
+
+/* Select dropdown styling */
+select {
+  width: 100%;
+  padding: 8px;
+  font-size: 0.9rem;
+  color: #eee;
+  background-color: #343a40;
+  border: none;
+  border-radius: 4px;
+  outline: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+  margin-right: 8px;
+  transform: scale(1.2);
+}

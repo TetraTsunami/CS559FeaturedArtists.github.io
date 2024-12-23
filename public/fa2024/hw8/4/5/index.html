@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Earth, Moon, and City Visualization</title>
+	<style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 200px;
+            line-height: 1.4;
+        }
+
+        #controls h1 {
+            font-size: 18px;
+            margin: 0 0 10px 0;
+        }
+
+        #controls p {
+            margin: 5px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        #pauseButton, #resetButton {
+            margin-top: 10px;
+            margin-right: 5px;
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        #pauseButton:hover, #resetButton:hover {
+            background: #444;
+        }
+	</style>
+</head>
+<body>
+<div id="controls">
+	<h1>Earth, Moon, and City Visualization</h1>
+	<p>This WebGL-based scene shows a rotating Earth, a tidally locked Moon, and textured buildings spread across major
+		metropolitan areas. You can click and drag to rotate the view, and use the mouse wheel to zoom in and out.</p>
+	<p>Use the buttons below to pause or reset the camera position.</p>
+	<button id="pauseButton">Pause</button>
+	<button id="resetButton">Reset</button>
+</div>
+<canvas id="glCanvas"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

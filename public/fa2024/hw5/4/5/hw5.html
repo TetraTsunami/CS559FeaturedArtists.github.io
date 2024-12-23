@@ -1,0 +1,71 @@
+
+  <html>
+<head>
+    <title>HW5</title>
+    <script type="text/javascript" src="gl-matrix-min.js"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 2px solid #333;
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+        }
+        .controls {
+            margin: 10px;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .slider-container {
+            margin: 10px 0;
+        }
+        .slider-label {
+            display: inline-block;
+            width: 150px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .path-info {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <div class="slider-container">
+            <span class="slider-label">Camera Angle:</span>
+            <input id="cameraSlider" type="range" min="0" max="100" value="30">
+        </div>
+        <div class="slider-container">
+            <span class="slider-label">Zoom:</span>
+            <input id="zoomSlider" type="range" min="30" max="100" value="70">
+        </div>
+        <div>
+            <button onclick="setView('orbit')">Orbit View</button>
+            <button onclick="setView('follow')">Follow Bird</button>
+            <button onclick="cyclePath()">Change Path</button>
+            <button onclick="togglePath()">Toggle Path</button>
+        </div>
+        <div class="path-info">Current Path: <span id="pathName">Figure-8</span></div>
+    </div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <script src="hw5.js"></script>
+</body>
+</html>

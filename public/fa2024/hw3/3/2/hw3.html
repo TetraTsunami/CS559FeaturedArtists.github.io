@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW3</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            background-color: lightblue;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+</head>
+<body>
+    <canvas id="myCanvas" width="800" height="600"></canvas>
+    <script>
+        window.onload = function () {
+            var canvas = document.getElementById('myCanvas');
+            var context = canvas.getContext('2d');
+
+            var hubRadius = 15;
+            var bladeLength = 125;
+            var bladeWidth = 17;
+            var numBlades = 4;
+            var rotationSpeed = 0.02;
+            var angle = 0;
+
+            var grassHeight = 50;
+            var grassWidths = 5;
+            var grassHeights = [];
+
+            var clouds = [];
+            var cloudSpeed = 1;
+            var numClouds = 5;
+
+            var raindrops = [];
+            var numRaindrops = 200;
+            var rainSpeed = 2;
+
+            function generateGrassHeights() {
+                for (let i = 0; i < canvas.width; i += grassWidths) {
+                    grassHeights.push(grassHeight + Math.random() * 20);
+                }
+            }
+
+            function generateClouds() {
+                for (let i = 0; i < numClouds; i++) {
+                    clouds.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * 100,
+                        width: 60 + Math.random() * 40,
+                        height: 30 + Math.random() * 20,
+                    });
+                }
+            }
+
+            function generateRaindrops() {
+                for (let i = 0; i < numRaindrops; i++) {
+                    raindrops.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        length: 10 + Math.random() * 10,
+                    });
+                }
+            }
+
+            function drawRain() {
+                context.strokeStyle = "blue";
+                context.lineWidth = 2;
+
+                raindrops.forEach(function(raindrop) {
+                    var T = mat3.create();
+                    mat3.fromTranslation(T, [raindrop.x, raindrop.y]);
+
+                    context.setTransform(T[0], T[1], T[3], T[4], T[6], T[7]);
+
+                    context.beginPath();
+                    context.moveTo(0, 0);
+                    context.lineTo(0, raindrop.length);
+                    context.stroke();
+                });
+
+                context.setTransform(1, 0, 0, 1, 0, 0);
+            }
+
+            function updateRaindrops() {
+                raindrops.forEach(function(raindrop) {
+                    raindrop.y += rainSpeed;
+                    if (raindrop.y > canvas.height) {
+                        raindrop.y = -raindrop.length;
+                        raindrop.x = Math.random() * canvas.width;
+                    }
+                });
+            }
+
+            function drawGrass() {
+                for (let i = 0; i < grassHeights.length; i++) {
+                    let height = grassHeights[i];
+                    const grassX = i * grassWidths;
+                    const grassY = canvas.height - height;
+
+                    var T = mat3.create();
+                    mat3.fromTranslation(T, [grassX, grassY]);
+
+                    context.setTransform(T[0], T[1], T[3], T[4], T[6], T[7]);
+                    context.fillStyle = "green";
+                    context.fillRect(0, 0, grassWidths, height);
+                }
+                context.setTransform(1, 0, 0, 1, 0, 0);
+            }
+
+            var numCornStalks = 8;
+            var stalkSegmentLength = 50;
+            var swayAmount = 5;
+
+            function drawCornStalk(x, y, swayOffset) {
+                context.strokeStyle = "yellowgreen";
+                context.lineWidth = 5;
+
+                const swayX = swayAmount * Math.sin(angle + swayOffset);
+                const swayY = swayAmount * Math.cos(angle + swayOffset);
+
+                var point1 = applyTranslation(x, y, [0, -stalkSegmentLength]);
+                var point2 = applyTranslation(point1[0] + swayX, point1[1] + swayY, [0, -stalkSegmentLength]);
+                var point3 = applyTranslation(point2[0], point2[1], [0, -stalkSegmentLength]);
+
+                drawSegment(x, y, point1[0], point1[1]);
+                drawSegment(point1[0], point1[1], point2[0], point2[1]);
+                drawSegment(point2[0], point2[1], point3[0], point3[1]);
+
+                drawLeaf(point1[0], point1[1], -30, 10);
+                drawLeaf(point2[0], point2[1], 30, 10);
+            }
+
+            function drawSegment(x1, y1, x2, y2) {
+                context.beginPath();
+                context.moveTo(x1, y1);
+                context.lineTo(x2, y2);
+                context.stroke();
+            }
+
+            function applyTranslation(x, y, translation) {
+                var translationMatrix = mat3.create();
+                mat3.fromTranslation(translationMatrix, translation);
+                var point = vec3.fromValues(x, y, 1);
+                var transformedPoint = vec3.create();
+                vec3.transformMat3(transformedPoint, point, translationMatrix);
+                return [transformedPoint[0], transformedPoint[1]];
+            }
+
+            function drawLeaf(x, y, angle, length) {
+                context.strokeStyle = "green";
+                context.lineWidth = 3;
+
+                const leafX1 = x + length * Math.cos(angle * Math.PI / 180);
+                const leafY1 = y + length * Math.sin(angle * Math.PI / 180);
+                const leafX2 = x + length * Math.cos((angle + 180) * Math.PI / 180);
+                const leafY2 = y + length * Math.sin((angle + 180) * Math.PI / 180);
+
+                context.beginPath();
+                context.moveTo(x, y);
+                context.lineTo(leafX1, leafY1);
+                context.moveTo(x, y);
+                context.lineTo(leafX2, leafY2);
+                context.stroke();
+            }
+
+            function drawBlade(angle, x, y) {
+                var T = mat3.create();
+                mat3.fromTranslation(T, [x, y]);
+                mat3.rotate(T, T, angle);
+
+                context.setTransform(T[0], T[1], T[3], T[4], T[6], T[7]);
+
+                context.fillStyle = "#C19A6B";
+                context.fillRect(-bladeWidth / 2, 0, bladeWidth, bladeLength);
+                context.strokeStyle = "black";
+                context.lineWidth = 2;
+                context.strokeRect(-bladeWidth / 2, 0, bladeWidth, bladeLength);
+
+                context.setTransform(1, 0, 0, 1, 0, 0);
+            }
+
+            function drawWindmill() {
+                context.fillStyle = "sandybrown";
+                context.lineWidth = 2;
+                context.strokeStyle = "black";
+
+                context.beginPath();
+                context.moveTo(340, 260);
+                context.lineTo(300, 600);
+                context.lineTo(500, 600);
+                context.lineTo(460, 260);
+                context.closePath();
+                context.fill();
+                context.stroke();
+
+                context.fillStyle = "black";
+                context.beginPath();
+                context.arc(400, 300, hubRadius, 0, Math.PI * 2);
+                context.fill();
+                context.strokeStyle = "black";
+                context.lineWidth = 2;
+                context.stroke();
+
+                for (let i = 0; i < numBlades; i++) {
+                    let bladeAngle = angle + (i * (Math.PI * 2 / numBlades));
+                    let bladeX = 400 + Math.cos(bladeAngle) * hubRadius;
+                    let bladeY = 300 + Math.sin(bladeAngle) * hubRadius;
+                    drawBlade(bladeAngle, bladeX, bladeY);
+                }
+            }
+
+            function drawCloud(cloud) {
+                context.fillStyle = "white";
+                var cloudPosition = applyTranslation(cloud.x, cloud.y, [0, 0]);
+                context.beginPath();
+                context.ellipse(cloudPosition[0], cloudPosition[1], cloud.width, cloud.height, 0, 0, Math.PI * 2);
+                context.fill();
+            }
+
+            function updateClouds() {
+                for (let cloud of clouds) {
+                    cloud.x -= cloudSpeed;
+                    if (cloud.x < -cloud.width) {
+                        cloud.x = canvas.width + cloud.width;
+                    }
+                }
+            }
+
+            function animate() {
+                canvas.width = canvas.width;
+
+                for (let cloud of clouds) {
+                    drawCloud(cloud);
+                }
+
+                drawRain();
+
+                for (let i = 0; i < numCornStalks; i++) {
+                    let cornX = i * 90 + 100;
+                    let cornY = canvas.height - 50;
+                    drawCornStalk(cornX, cornY, i);
+                }
+
+                drawGrass();
+                drawWindmill();
+
+                angle += rotationSpeed;
+                updateRaindrops();
+                updateClouds();
+                
+                requestAnimationFrame(animate);
+            }
+
+            generateGrassHeights();
+            generateClouds();
+            generateRaindrops();
+            animate();
+        }
+    </script>
+</body>
+</html>

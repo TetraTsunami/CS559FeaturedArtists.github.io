@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HW7</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: sans-serif;
+        }
+        label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label for="angleSlider">Camera Angle:</label>
+        <input type="range" id="angleSlider" name="angleSlider" min="0" max="360" value="0">
+    </div>
+    <canvas id="webglCanvas"></canvas>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+    <script type="text/javascript">
+        window.onload = function() {
+            const canvasElement = document.getElementById('webglCanvas');
+            const glContext = canvasElement.getContext('webgl') || canvasElement.getContext('experimental-webgl');
+            if (!glContext) {
+                alert('WebGL not supported, falling back on experimental-webgl');
+                glContext = canvasElement.getContext('experimental-webgl');
+            }
+            if (!glContext) {
+                alert('Your browser does not support WebGL');
+                return;
+            }
+            canvasElement.width = window.innerWidth;
+            canvasElement.height = window.innerHeight;
+            glContext.viewport(0, 0, canvasElement.width, canvasElement.height);
+            const vertexShaderSourceStars = `
+                attribute vec3 positionAttribute;
+                uniform mat4 projectionUniform;
+                uniform mat4 modelViewUniform;
+                void main(void) {
+                    gl_Position = projectionUniform * modelViewUniform * vec4(positionAttribute, 1.0);
+                    gl_PointSize = 1.0;
+                }
+            `;
+            const fragmentShaderSourceStars = `
+                precision mediump float;
+                void main(void) {
+                    gl_FragColor = vec4(1.0);
+                }
+            `;
+            const vertexShaderSource = `
+                attribute vec4 positionAttribute;
+                attribute vec3 normalAttribute;
+                uniform mat4 modelViewUniform;
+                uniform mat4 projectionUniform;
+                uniform mat4 normalUniform;
+                varying highp vec3 transformedNormal;
+                varying highp vec4 vertexPosition;
+                void main(void) {
+                    gl_Position = projectionUniform * modelViewUniform * positionAttribute;
+                    vertexPosition = modelViewUniform * positionAttribute;
+                    transformedNormal = mat3(normalUniform) * normalAttribute;
+                }
+            `;
+            const fragmentShaderSourcePlanet = `
+                precision highp float;
+                varying highp vec3 transformedNormal;
+                varying highp vec4 vertexPosition;
+                uniform vec3 lightPositionUniform;
+                uniform vec3 lightColorUniform;
+                uniform vec3 ambientLightUniform;
+                uniform float timeUniform;
+                void main(void) {
+                    vec3 normal = normalize(transformedNormal);
+                    vec3 lightDirection = normalize(lightPositionUniform - vertexPosition.xyz);
+                    float diffuse = max(dot(normal, lightDirection), 0.0);
+                    vec3 lightEffect = ambientLightUniform + (lightColorUniform * diffuse);
+                    vec3 planetColor = vec3(
+                        0.2 + 0.1 * sin(timeUniform),
+                        0.6 + 0.1 * sin(timeUniform * 1.5),
+                        1.0 + 0.1 * sin(timeUniform * 2.0)
+                    );
+                    vec3 finalColor = planetColor * lightEffect;
+                    gl_FragColor = vec4(finalColor, 1.0);
+                }
+            `;
+            const fragmentShaderSourceSun = `
+                precision highp float;
+                varying highp vec3 transformedNormal;
+                varying highp vec4 vertexPosition;
+                uniform vec3 lightPositionUniform;
+                uniform vec3 lightColorUniform;
+                uniform vec3 ambientLightUniform;
+                void main(void) {
+                    gl_FragColor = vec4(1.0, 0.8, 0.0, 1.0);
+                }
+            `;
+            const fragmentShaderSourceSatellite = `
+                precision highp float;
+                varying highp vec3 transformedNormal;
+                varying highp vec4 vertexPosition;
+                uniform vec3 lightPositionUniform;
+                uniform vec3 lightColorUniform;
+                uniform vec3 ambientLightUniform;
+                uniform float timeUniform;
+                void main(void) {
+                    vec3 normal = normalize(transformedNormal);
+                    vec3 lightDirection = normalize(lightPositionUniform - vertexPosition.xyz);
+                    float diffuse = max(dot(normal, lightDirection), 0.0);
+                    vec3 viewDirection = normalize(-vertexPosition.xyz);
+                    vec3 reflectDirection = reflect(-lightDirection, normal);
+                    float specular = pow(max(dot(viewDirection, reflectDirection), 0.0), 32.0);
+                    vec3 lightEffect = ambientLightUniform + (lightColorUniform * diffuse) + (lightColorUniform * specular);
+                    float brightness = 0.5 + 0.5 * sin(timeUniform * 2.0);
+                    vec3 satelliteColor = vec3(0.8, 0.8, 0.8) * brightness;
+                    vec3 finalColor = satelliteColor * lightEffect;
+                    gl_FragColor = vec4(finalColor, 1.0);
+                }
+            `;
+            const fragmentShaderSourceMoon = `
+                precision highp float;
+                varying highp vec3 transformedNormal;
+                varying highp vec4 vertexPosition;
+                uniform vec3 lightPositionUniform;
+                uniform vec3 lightColorUniform;
+                uniform vec3 ambientLightUniform;
+                void main(void) {
+                    vec3 normal = normalize(transformedNormal);
+                    float noise = fract(sin(dot(vertexPosition.xyz, vec3(12.9898,78.233,45.164))) * 43758.5453);
+                    float craterEffect = step(0.95, noise);
+                    normal = mix(normal, normal * 0.5, craterEffect);
+                    vec3 lightDirection = normalize(lightPositionUniform - vertexPosition.xyz);
+                    float diffuse = max(dot(normal, lightDirection), 0.0);
+                    vec3 viewDirection = normalize(-vertexPosition.xyz);
+                    vec3 reflectDirection = reflect(-lightDirection, normal);
+                    float specular = pow(max(dot(viewDirection, reflectDirection), 0.0), 16.0);
+                    vec3 lightEffect = ambientLightUniform + (lightColorUniform * diffuse) + (lightColorUniform * specular * 0.3);
+                    vec3 moonColor = vec3(0.8, 0.8, 0.8);
+                    moonColor *= mix(1.0, 0.5, craterEffect);
+                    vec3 finalColor = moonColor * lightEffect;
+                    gl_FragColor = vec4(finalColor, 1.0);
+                }
+            `;
+            const shaderProgramStars = initializeShaderProgram(glContext, vertexShaderSourceStars, fragmentShaderSourceStars);
+            const shaderProgramPlanet = initializeShaderProgram(glContext, vertexShaderSource, fragmentShaderSourcePlanet);
+            const shaderProgramSun = initializeShaderProgram(glContext, vertexShaderSource, fragmentShaderSourceSun);
+            const shaderProgramSatellite = initializeShaderProgram(glContext, vertexShaderSource, fragmentShaderSourceSatellite);
+            const shaderProgramMoon = initializeShaderProgram(glContext, vertexShaderSource, fragmentShaderSourceMoon);
+            const programInfoStars = {
+                program: shaderProgramStars,
+                attribLocations: {
+                    positionAttribute: glContext.getAttribLocation(shaderProgramStars, 'positionAttribute'),
+                },
+                uniformLocations: {
+                    projectionUniform: glContext.getUniformLocation(shaderProgramStars, 'projectionUniform'),
+                    modelViewUniform: glContext.getUniformLocation(shaderProgramStars, 'modelViewUniform'),
+                },
+            };
+            const programInfoPlanet = {
+                program: shaderProgramPlanet,
+                attribLocations: {
+                    positionAttribute: glContext.getAttribLocation(shaderProgramPlanet, 'positionAttribute'),
+                    normalAttribute: glContext.getAttribLocation(shaderProgramPlanet, 'normalAttribute'),
+                },
+                uniformLocations: {
+                    projectionUniform: glContext.getUniformLocation(shaderProgramPlanet, 'projectionUniform'),
+                    modelViewUniform: glContext.getUniformLocation(shaderProgramPlanet, 'modelViewUniform'),
+                    normalUniform: glContext.getUniformLocation(shaderProgramPlanet, 'normalUniform'),
+                    lightPositionUniform: glContext.getUniformLocation(shaderProgramPlanet, 'lightPositionUniform'),
+                    lightColorUniform: glContext.getUniformLocation(shaderProgramPlanet, 'lightColorUniform'),
+                    ambientLightUniform: glContext.getUniformLocation(shaderProgramPlanet, 'ambientLightUniform'),
+                    timeUniform: glContext.getUniformLocation(shaderProgramPlanet, 'timeUniform'),
+                },
+            };
+            const programInfoSun = {
+                program: shaderProgramSun,
+                attribLocations: {
+                    positionAttribute: glContext.getAttribLocation(shaderProgramSun, 'positionAttribute'),
+                    normalAttribute: glContext.getAttribLocation(shaderProgramSun, 'normalAttribute'),
+                },
+                uniformLocations: {
+                    projectionUniform: glContext.getUniformLocation(shaderProgramSun, 'projectionUniform'),
+                    modelViewUniform: glContext.getUniformLocation(shaderProgramSun, 'modelViewUniform'),
+                    normalUniform: glContext.getUniformLocation(shaderProgramSun, 'normalUniform'),
+                    lightPositionUniform: glContext.getUniformLocation(shaderProgramSun, 'lightPositionUniform'),
+                    lightColorUniform: glContext.getUniformLocation(shaderProgramSun, 'lightColorUniform'),
+                    ambientLightUniform: glContext.getUniformLocation(shaderProgramSun, 'ambientLightUniform'),
+                },
+            };
+            const programInfoSatellite = {
+                program: shaderProgramSatellite,
+                attribLocations: {
+                    positionAttribute: glContext.getAttribLocation(shaderProgramSatellite, 'positionAttribute'),
+                    normalAttribute: glContext.getAttribLocation(shaderProgramSatellite, 'normalAttribute'),
+                },
+                uniformLocations: {
+                    projectionUniform: glContext.getUniformLocation(shaderProgramSatellite, 'projectionUniform'),
+                    modelViewUniform: glContext.getUniformLocation(shaderProgramSatellite, 'modelViewUniform'),
+                    normalUniform: glContext.getUniformLocation(shaderProgramSatellite, 'normalUniform'),
+                    lightPositionUniform: glContext.getUniformLocation(shaderProgramSatellite, 'lightPositionUniform'),
+                    lightColorUniform: glContext.getUniformLocation(shaderProgramSatellite, 'lightColorUniform'),
+                    ambientLightUniform: glContext.getUniformLocation(shaderProgramSatellite, 'ambientLightUniform'),
+                    timeUniform: glContext.getUniformLocation(shaderProgramSatellite, 'timeUniform'),
+                },
+            };
+            const programInfoMoon = {
+                program: shaderProgramMoon,
+                attribLocations: {
+                    positionAttribute: glContext.getAttribLocation(shaderProgramMoon, 'positionAttribute'),
+                    normalAttribute: glContext.getAttribLocation(shaderProgramMoon, 'normalAttribute'),
+                },
+                uniformLocations: {
+                    projectionUniform: glContext.getUniformLocation(shaderProgramMoon, 'projectionUniform'),
+                    modelViewUniform: glContext.getUniformLocation(shaderProgramMoon, 'modelViewUniform'),
+                    normalUniform: glContext.getUniformLocation(shaderProgramMoon, 'normalUniform'),
+                    lightPositionUniform: glContext.getUniformLocation(shaderProgramMoon, 'lightPositionUniform'),
+                    lightColorUniform: glContext.getUniformLocation(shaderProgramMoon, 'lightColorUniform'),
+                    ambientLightUniform: glContext.getUniformLocation(shaderProgramMoon, 'ambientLightUniform'),
+                },
+            };
+            const buffers = initializeBuffers(glContext);
+            const starBuffers = initializeStarBuffers(glContext);
+            let previousTime = 0;
+            let cameraAngleDegrees = 0;
+            const angleSlider = document.getElementById('angleSlider');
+            angleSlider.addEventListener('input', function() {
+                cameraAngleDegrees = parseFloat(this.value);
+            });
+            function render(currentTime) {
+                currentTime *= 0.001;
+                const deltaTime = currentTime - previousTime;
+                previousTime = currentTime;
+                drawScene(glContext, programInfoStars, programInfoPlanet, programInfoSun, programInfoSatellite, programInfoMoon, starBuffers, buffers, currentTime);
+                requestAnimationFrame(render);
+            }
+            requestAnimationFrame(render);
+            function initializeShaderProgram(gl, vsSource, fsSource) {
+                const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+                const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+                const shaderProgram = gl.createProgram();
+                gl.attachShader(shaderProgram, vertexShader);
+                gl.attachShader(shaderProgram, fragmentShader);
+                gl.linkProgram(shaderProgram);
+                if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                    alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+                    return null;
+                }
+                return shaderProgram;
+            }
+            function loadShader(gl, type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+                    gl.deleteShader(shader);
+                    return null;
+                }
+                return shader;
+            }
+            function initializeBuffers(gl) {
+                const latitudeBands = 40;
+                const longitudeBands = 40;
+                const radius = 1.0;
+                const positions = [];
+                const normals = [];
+                const indices = [];
+                for (let latNumber = 0; latNumber <= latitudeBands; ++latNumber) {
+                    const theta = latNumber * Math.PI / latitudeBands;
+                    const sinTheta = Math.sin(theta);
+                    const cosTheta = Math.cos(theta);
+                    for (let longNumber = 0; longNumber <= longitudeBands; ++longNumber) {
+                        const phi = longNumber * 2 * Math.PI / longitudeBands;
+                        const sinPhi = Math.sin(phi);
+                        const cosPhi = Math.cos(phi);
+                        const x = cosPhi * sinTheta;
+                        const y = cosTheta;
+                        const z = sinPhi * sinTheta;
+                        normals.push(x);
+                        normals.push(y);
+                        normals.push(z);
+                        positions.push(radius * x);
+                        positions.push(radius * y);
+                        positions.push(radius * z);
+                    }
+                }
+                for (let latNumber = 0; latNumber < latitudeBands; ++latNumber) {
+                    for (let longNumber = 0; longNumber < longitudeBands; ++longNumber) {
+                        const first = (latNumber * (longitudeBands + 1)) + longNumber;
+                        const second = first + longitudeBands + 1;
+                        indices.push(first);
+                        indices.push(second);
+                        indices.push(first + 1);
+                        indices.push(second);
+                        indices.push(second + 1);
+                        indices.push(first + 1);
+                    }
+                }
+                const positionBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+                const normalBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+                const indexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+                return {
+                    position: positionBuffer,
+                    normal: normalBuffer,
+                    indices: indexBuffer,
+                    vertexCount: indices.length,
+                };
+            }
+            function initializeStarBuffers(gl) {
+                const numStars = 1000;
+                const positions = [];
+                for (let i = 0; i < numStars; i++) {
+                    const x = (Math.random() * 2 - 1) * 50;
+                    const y = (Math.random() * 2 - 1) * 50;
+                    const z = -(Math.random() * 50 + 50);
+                    positions.push(x, y, z);
+                }
+                const positionBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+                return {
+                    position: positionBuffer,
+                    vertexCount: numStars,
+                };
+            }
+            function drawScene(gl, programInfoStars, programInfoPlanet, programInfoSun, programInfoSatellite, programInfoMoon, starBuffers, buffers, time) {
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clearDepth(1.0);
+                gl.enable(gl.DEPTH_TEST);
+                gl.depthFunc(gl.LEQUAL);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                const fieldOfView = 45 * Math.PI / 180;
+                const aspect = canvasElement.clientWidth / canvasElement.clientHeight;
+                const zNear = 0.1;
+                const zFar = 200.0;
+                const projectionMatrix = mat4.create();
+                mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
+                const cameraRadius = 20.0;
+                const cameraAngleRadians = cameraAngleDegrees * Math.PI / 180.0;
+                const cameraX = Math.sin(cameraAngleRadians) * cameraRadius;
+                const cameraZ = Math.cos(cameraAngleRadians) * cameraRadius;
+                const cameraPosition = vec3.fromValues(cameraX, 5.0, cameraZ);
+                const upVector = vec3.fromValues(0.0, 1.0, 0.0);
+                const targetPosition = vec3.fromValues(0.0, 0.0, -10.0);
+                const viewMatrix = mat4.create();
+                mat4.lookAt(viewMatrix, cameraPosition, targetPosition, upVector);
+                const lightPosition = vec3.fromValues(0.0, 0.0, -10.0);
+                const lightColor = vec3.fromValues(1.0, 1.0, 1.0);
+                const ambientLight = vec3.fromValues(0.1, 0.1, 0.1);
+                {
+                    gl.useProgram(programInfoStars.program);
+                    {
+                        const numComponents = 3;
+                        const type = gl.FLOAT;
+                        const normalize = false;
+                        const stride = 0;
+                        const offset = 0;
+                        gl.bindBuffer(gl.ARRAY_BUFFER, starBuffers.position);
+                        gl.vertexAttribPointer(
+                            programInfoStars.attribLocations.positionAttribute,
+                            numComponents, type, normalize, stride, offset);
+                        gl.enableVertexAttribArray(
+                            programInfoStars.attribLocations.positionAttribute);
+                    }
+                    const modelViewMatrixStars = mat4.clone(viewMatrix);
+                    gl.uniformMatrix4fv(
+                        programInfoStars.uniformLocations.projectionUniform,
+                        false, projectionMatrix);
+                    gl.uniformMatrix4fv(
+                        programInfoStars.uniformLocations.modelViewUniform,
+                        false, modelViewMatrixStars);
+                    gl.drawArrays(gl.POINTS, 0, starBuffers.vertexCount);
+                }
+                {
+                    const modelMatrixSun = mat4.create();
+                    mat4.translate(modelMatrixSun, modelMatrixSun, [0.0, 0.0, -10.0]);
+                    mat4.scale(modelMatrixSun, modelMatrixSun, [2.0, 2.0, 2.0]);
+                    const modelViewMatrixSun = mat4.create();
+                    mat4.multiply(modelViewMatrixSun, viewMatrix, modelMatrixSun);
+                    const normalMatrixSun = mat4.create();
+                    mat4.invert(normalMatrixSun, modelViewMatrixSun);
+                    mat4.transpose(normalMatrixSun, normalMatrixSun);
+                    {
+                        const numComponents = 3;
+                        const type = gl.FLOAT;
+                        const normalize = false;
+                        const stride = 0;
+                        const offset = 0;
+                        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+                        gl.vertexAttribPointer(
+                            programInfoSun.attribLocations.positionAttribute,
+                            numComponents, type, normalize, stride, offset);
+                        gl.enableVertexAttribArray(
+                            programInfoSun.attribLocations.positionAttribute);
+                    }
+                    {
+                        const numComponents = 3;
+                        const type = gl.FLOAT;
+                        const normalize = false;
+                        const stride = 0;
+                        const offset = 0;
+                        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
+                        gl.vertexAttribPointer(
+                            programInfoSun.attribLocations.normalAttribute,
+                            numComponents, type, normalize, stride, offset);
+                        gl.enableVertexAttribArray(
+                            programInfoSun.attribLocations.normalAttribute);
+                    }
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+                    gl.useProgram(programInfoSun.program);
+                    gl.uniformMatrix4fv(
+                        programInfoSun.uniformLocations.projectionUniform,
+                        false, projectionMatrix);
+                    gl.uniformMatrix4fv(
+                        programInfoSun.uniformLocations.modelViewUniform,
+                        false, modelViewMatrixSun);
+                    gl.uniformMatrix4fv(
+                        programInfoSun.uniformLocations.normalUniform,
+                        false, normalMatrixSun);
+                    gl.uniform3fv(programInfoSun.uniformLocations.lightPositionUniform, lightPosition);
+                    gl.uniform3fv(programInfoSun.uniformLocations.lightColorUniform, lightColor);
+                    gl.uniform3fv(programInfoSun.uniformLocations.ambientLightUniform, ambientLight);
+                    const vertexCount = buffers.vertexCount;
+                    const type = gl.UNSIGNED_SHORT;
+                    const offset = 0;
+                    gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+                }
+                {
+                    const orbitRadiusPlanet = 5.0;
+                    const orbitSpeedPlanet = 0.5;
+                    const planetX = Math.cos(time * orbitSpeedPlanet) * orbitRadiusPlanet;
+                    const planetZ = Math.sin(time * orbitSpeedPlanet) * orbitRadiusPlanet;
+                    const modelMatrixPlanet = mat4.create();
+                    mat4.translate(modelMatrixPlanet, modelMatrixPlanet, [planetX, 0.0, planetZ - 10.0]);
+                    mat4.rotate(modelMatrixPlanet, modelMatrixPlanet, time * 1.0, [0, 1, 0]);
+                    mat4.scale(modelMatrixPlanet, modelMatrixPlanet, [1.0, 1.0, 1.0]);
+                    const modelViewMatrixPlanet = mat4.create();
+                    mat4.multiply(modelViewMatrixPlanet, viewMatrix, modelMatrixPlanet);
+                    const normalMatrixPlanet = mat4.create();
+                    mat4.invert(normalMatrixPlanet, modelViewMatrixPlanet);
+                    mat4.transpose(normalMatrixPlanet, normalMatrixPlanet);
+                    {
+                        const numComponents = 3;
+                        const type = gl.FLOAT;
+                        const normalize = false;
+                        const stride = 0;
+                        const offset = 0;
+                        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+                        gl.vertexAttribPointer(
+                            programInfoPlanet.attribLocations.positionAttribute,
+                            numComponents, type, normalize, stride, offset);
+                        gl.enableVertexAttribArray(
+                            programInfoPlanet.attribLocations.positionAttribute);
+                    }
+                    {
+                        const numComponents = 3;
+                        const type = gl.FLOAT;
+                        const normalize = false;
+                        const stride = 0;
+                        const offset = 0;
+                        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
+                        gl.vertexAttribPointer(
+                            programInfoPlanet.attribLocations.normalAttribute,
+                            numComponents, type, normalize, stride, offset);
+                        gl.enableVertexAttribArray(
+                            programInfoPlanet.attribLocations.normalAttribute);
+                    }
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+                    gl.useProgram(programInfoPlanet.program);
+                    gl.uniformMatrix4fv(
+                        programInfoPlanet.uniformLocations.projectionUniform,
+                        false, projectionMatrix);
+                    gl.uniformMatrix4fv(
+                        programInfoPlanet.uniformLocations.modelViewUniform,
+                        false, modelViewMatrixPlanet);
+                    gl.uniformMatrix4fv(
+                        programInfoPlanet.uniformLocations.normalUniform,
+                        false, normalMatrixPlanet);
+                    gl.uniform3fv(programInfoPlanet.uniformLocations.lightPositionUniform, lightPosition);
+                    gl.uniform3fv(programInfoPlanet.uniformLocations.lightColorUniform, lightColor);
+                    gl.uniform3fv(programInfoPlanet.uniformLocations.ambientLightUniform, ambientLight);
+                    gl.uniform1f(programInfoPlanet.uniformLocations.timeUniform, time);
+                    const vertexCount = buffers.vertexCount;
+                    const type = gl.UNSIGNED_SHORT;
+                    const offset = 0;
+                    gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+                }
+                {
+                    const orbitRadiusSatellite = 3.0;
+                    const orbitSpeedSatellite = 1.0;
+                    const satelliteX = Math.cos(time * orbitSpeedSatellite) * orbitRadiusSatellite;
+                    const satelliteZ = Math.sin(time * orbitSpeedSatellite) * orbitRadiusSatellite;
+                    const modelMatrixSatellite = mat4.create();
+                    mat4.translate(modelMatrixSatellite, modelMatrixSatellite, [satelliteX, 0.0, satelliteZ - 10.0]);
+                    mat4.rotate(modelMatrixSatellite, modelMatrixSatellite, time * 2.0, [0, 1, 0]);
+                    mat4.scale(modelMatrixSatellite, modelMatrixSatellite, [0.5, 0.5, 0.5]);
+                    const modelViewMatrixSatellite = mat4.create();
+                    mat4.multiply(modelViewMatrixSatellite, viewMatrix, modelMatrixSatellite);
+                    const normalMatrixSatellite = mat4.create();
+                    mat4.invert(normalMatrixSatellite, modelViewMatrixSatellite);
+                    mat4.transpose(normalMatrixSatellite, normalMatrixSatellite);
+                    {
+                        const numComponents = 3;
+                        const type = gl.FLOAT;
+                        const normalize = false;
+                        const stride = 0;
+                        const offset = 0;
+                        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+                        gl.vertexAttribPointer(
+                            programInfoSatellite.attribLocations.positionAttribute,
+                            numComponents, type, normalize, stride, offset);
+                        gl.enableVertexAttribArray(
+                            programInfoSatellite.attribLocations.positionAttribute);
+                    }
+                    {
+                        const numComponents = 3;
+                        const type = gl.FLOAT;
+                        const normalize = false;
+                        const stride = 0;
+                        const offset = 0;
+                        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
+                        gl.vertexAttribPointer(
+                            programInfoSatellite.attribLocations.normalAttribute,
+                            numComponents, type, normalize, stride, offset);
+                        gl.enableVertexAttribArray(
+                            programInfoSatellite.attribLocations.normalAttribute);
+                    }
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+                    gl.useProgram(programInfoSatellite.program);
+                    gl.uniformMatrix4fv(
+                        programInfoSatellite.uniformLocations.projectionUniform,
+                        false, projectionMatrix);
+                    gl.uniformMatrix4fv(
+                        programInfoSatellite.uniformLocations.modelViewUniform,
+                        false, modelViewMatrixSatellite);
+                    gl.uniformMatrix4fv(
+                        programInfoSatellite.uniformLocations.normalUniform,
+                        false, normalMatrixSatellite);
+                    gl.uniform3fv(programInfoSatellite.uniformLocations.lightPositionUniform, lightPosition);
+                    gl.uniform3fv(programInfoSatellite.uniformLocations.lightColorUniform, lightColor);
+                    gl.uniform3fv(programInfoSatellite.uniformLocations.ambientLightUniform, ambientLight);
+                    gl.uniform1f(programInfoSatellite.uniformLocations.timeUniform, time);
+                    const vertexCount = buffers.vertexCount;
+                    const type = gl.UNSIGNED_SHORT;
+                    const offset = 0;
+                    gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+                }
+                {
+                    const orbitRadiusMoon = 1.5;
+                    const orbitSpeedMoon = 1.5;
+                    const orbitRadiusPlanet = 5.0;
+                    const orbitSpeedPlanet = 0.5;
+                    const planetX = Math.cos(time * orbitSpeedPlanet) * orbitRadiusPlanet;
+                    const planetZ = Math.sin(time * orbitSpeedPlanet) * orbitRadiusPlanet;
+                    const moonX = Math.cos(time * orbitSpeedMoon) * orbitRadiusMoon;
+                    const moonZ = Math.sin(time * orbitSpeedMoon) * orbitRadiusMoon;
+                    const modelMatrixMoon = mat4.create();
+                    mat4.translate(modelMatrixMoon, modelMatrixMoon, [planetX + moonX, 0.0, planetZ - 10.0 + moonZ]);
+                    mat4.rotate(modelMatrixMoon, modelMatrixMoon, time * 2.0, [0, 1, 0]);
+                    mat4.scale(modelMatrixMoon, modelMatrixMoon, [0.5, 0.5, 0.5]);
+                    const modelViewMatrixMoon = mat4.create();
+                    mat4.multiply(modelViewMatrixMoon, viewMatrix, modelMatrixMoon);
+                    const normalMatrixMoon = mat4.create();
+                    mat4.invert(normalMatrixMoon, modelViewMatrixMoon);
+                    mat4.transpose(normalMatrixMoon, normalMatrixMoon);
+                    {
+                        const numComponents = 3;
+                        const type = gl.FLOAT;
+                        const normalize = false;
+                        const stride = 0;
+                        const offset = 0;
+                        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+                        gl.vertexAttribPointer(
+                            programInfoMoon.attribLocations.positionAttribute,
+                            numComponents, type, normalize, stride, offset);
+                        gl.enableVertexAttribArray(
+                            programInfoMoon.attribLocations.positionAttribute);
+                    }
+                    {
+                        const numComponents = 3;
+                        const type = gl.FLOAT;
+                        const normalize = false;
+                        const stride = 0;
+                        const offset = 0;
+                        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
+                        gl.vertexAttribPointer(
+                            programInfoMoon.attribLocations.normalAttribute,
+                            numComponents, type, normalize, stride, offset);
+                        gl.enableVertexAttribArray(
+                            programInfoMoon.attribLocations.normalAttribute);
+                    }
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+                    gl.useProgram(programInfoMoon.program);
+                    gl.uniformMatrix4fv(
+                        programInfoMoon.uniformLocations.projectionUniform,
+                        false, projectionMatrix);
+                    gl.uniformMatrix4fv(
+                        programInfoMoon.uniformLocations.modelViewUniform,
+                        false, modelViewMatrixMoon);
+                    gl.uniformMatrix4fv(
+                        programInfoMoon.uniformLocations.normalUniform,
+                        false, normalMatrixMoon);
+                    gl.uniform3fv(programInfoMoon.uniformLocations.lightPositionUniform, lightPosition);
+                    gl.uniform3fv(programInfoMoon.uniformLocations.lightColorUniform, lightColor);
+                    gl.uniform3fv(programInfoMoon.uniformLocations.ambientLightUniform, ambientLight);
+                    const vertexCount = buffers.vertexCount;
+                    const type = gl.UNSIGNED_SHORT;
+                    const offset = 0;
+                    gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+                }
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Topology with Ryan</title>
+</head>
+<body>
+    <canvas id="myCanvas" 
+       width="800" height="600"
+       style="border:1px solid #000;">
+    </canvas>
+    <form id="kblform">
+    <fieldset>
+	<legend>Keyboard layout</legend>
+	<input type="radio" id="kblchoice1" name="kbl" value="qwerty" checked>
+	<label for="kblchoice1">QWERTY</label>
+	<input type="radio" id="kblchoice2" name="kbl" value="dvorak">
+	<label for="kblchoice2">DVORAK</label>
+    </fieldset>
+    </form>
+    <!-- <canvas id="mazeMinimapCanvas"
+	    width="130" height="130"
+			style="border:2px solid #000; margin-top:5px">
+    </canvas> -->
+    <p> 
+    Use the WASD (or Dvorak equivalent ,AOE) keys to move. Hold Space to agitate the Ryan Cubes.  The Sphube, being above the emotions of mere cubes, does not move.</br>
+    Ryan was unable to prepare a maze for us in time for finals week.</br>
+    Instead, he decided he would help us study for our topology final by demonstrating a homeomorphism between a sphere and a cube.
+    </p>
+    <script src="shaders/obj.frag" id="obj-fragment-shader" type="x-shader/x-frag"> </script>
+    <script src="shaders/obj.vertex" id="obj-vertex-shader" type="x-shader/x-vertex"> </script>
+    <script src="out/index.js"> </script>
+</body>
+</html>

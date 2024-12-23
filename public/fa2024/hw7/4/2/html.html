@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D WebGL Scene</title>
+    <style>
+        canvas { display: block; margin: auto; }
+        .controls { text-align: center; margin-top: 10px; }
+    </style>
+    <script src="gl-matrix-min.js" defer></script>
+    <script src="dicemaker.js"></script>
+</head>
+<body>
+    <canvas id="glCanvas" width="600" height="600"></canvas>
+    <div class="controls">
+        <label for="cameraAngle">Camera Angle:</label>
+        <input type="range" id="cameraAngle" min="0" max="360" value="0">
+    </div>
+    <script id="vertexShader" type="x-shader/x-vertex">
+        attribute vec3 aPosition;
+        attribute vec3 aNormal;
+        
+        uniform mat4 uModelViewMatrix;
+        uniform mat4 uProjectionMatrix;
+        uniform mat4 uNormalMatrix;
+        
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        varying vec2 vTexCoords; // Add varying for texture coordinates
+        
+        void main() {
+            vNormal = mat3(uNormalMatrix) * aNormal;
+            vPosition = vec3(uModelViewMatrix * vec4(aPosition, 1.0));
+        
+            // Generate texture coordinates based on position
+            vTexCoords = aPosition.xy; // Use XY plane as texture mapping
+        
+            gl_Position = uProjectionMatrix * vec4(vPosition, 1.0);
+        }
+    </script>
+        
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        precision mediump float;
+    
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        varying vec2 vTexCoords;
+    
+        uniform vec3 uLightPosition1; // Static white light position
+        uniform vec3 uLightColor1;    // Static white light color
+        uniform vec3 uLightPosition2; // Moving dynamic light position
+        uniform float uTime;          // Time uniform for color change animation
+        uniform vec3 uAmbientLight;   // Ambient light color
+    
+        void main() {
+            // Generate wood-like pattern using texture coordinates
+            float grain = sin(20.0 * vTexCoords.x) * cos(20.0 * vTexCoords.y) * 0.5 + 0.5;
+            vec3 baseColor = mix(vec3(0.5, 0.3, 0.1), vec3(0.8, 0.6, 0.4), grain);
+    
+            vec3 normal = normalize(vNormal);
+            vec3 viewDirection = normalize(-vPosition);
+    
+            // Light 1 (Static white light)
+            vec3 lightDirection1 = normalize(uLightPosition1 - vPosition);
+            float diffuse1 = max(dot(normal, lightDirection1), 0.0);
+            vec3 reflection1 = reflect(-lightDirection1, normal);
+            float specular1 = pow(max(dot(reflection1, viewDirection), 0.0), 32.0);
+    
+            // Light 2 (Dynamic color-changing light)
+            vec3 dynamicColor = vec3(
+                0.5 + 0.5 * sin(uTime),
+                0.5 + 0.5 * cos(uTime),
+                0.5 + 0.5 * sin(uTime + 1.57) // Add a phase offset for variation
+            );
+    
+            vec3 lightDirection2 = normalize(uLightPosition2 - vPosition);
+            float diffuse2 = max(dot(normal, lightDirection2), 0.0);
+            vec3 reflection2 = reflect(-lightDirection2, normal);
+            float specular2 = pow(max(dot(reflection2, viewDirection), 0.0), 32.0);
+    
+            // Combine lighting effects
+            vec3 ambient = uAmbientLight * baseColor;
+            vec3 light = uLightColor1 * (baseColor * diffuse1 + specular1)
+                       + dynamicColor * (baseColor * diffuse2 + specular2);
+    
+            gl_FragColor = vec4(ambient + light, 1.0);
+        }
+    </script>
+        
+    <script id="edgeVertexShader" type="x-shader/x-vertex">
+        attribute vec3 aPosition;
+
+        uniform mat4 uModelViewMatrix;
+        uniform mat4 uProjectionMatrix;
+
+        void main() {
+            gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
+        }
+    </script>
+    <script id="edgeFragmentShader" type="x-shader/x-fragment">
+        precision mediump float;
+        void main() {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for edges
+        }
+    </script>
+</body>
+</html>
