@@ -664,7 +664,8 @@ function start() {
                                         }
                                         chimneyImg.src = "https://live.staticflickr.com/65535/50641871583_78566f4fbb_o.jpg";
                                     }
-                                    windowImg.src = "https://s1.aigei.com/prevfiles/1775b00de8b540d8a9649c7f98fd6930.jpg?e=1735488000&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:I-tXhgOlDHKM4DHjTI8Tw_mPfys=";
+                                    // Edit by course staff: the original image was hotlinked and died
+                                    windowImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAgMAAAAOFJJnAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACVBMVEX7PvkAAAD\/\/\/\/236zQAAAAAWJLR0QCZgt8ZAAAAAd0SU1FB+cDDhAHIubt+CoAAAAWSURBVBjTY2AAglAgYBgkjMHkFiAAAOp5KoGPcwBzAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDIzLTAzLTE0VDE2OjA3OjM0KzAwOjAwYNPM/QAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyMy0wMy0xNFQxNjowNzozNCswMDowMBGOdEEAAAAASUVORK5CYII=";
                                 }
                                 doorImg.src = "https://live.staticflickr.com/5564/30725680942_0c6e60a13f_o.jpg";
                             }
